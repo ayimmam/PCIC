@@ -13,6 +13,7 @@ const seedUsers = [
   { name: "Project Manager", email: "pm@pcic.com", password: "password123", role: "pm", batch: "batch_1", domain: "General" },
   { name: "Membership Coordinator", email: "mc@pcic.com", password: "password123", role: "mc", batch: "batch_1", domain: "General" },
   { name: "Tech Domain Leader", email: "tech.lead@pcic.com", password: "password123", role: "domain_leader", batch: "batch_2", domain: "Technical" },
+  { name: "Public Relation", email: "pr@pcic.com", password: "password123", role: "pr", batch: "batch_1", domain: "Marketing" },
   { name: "Abebe Kebede", email: "abebe@pcic.com", password: "password123", role: "member", batch: "batch_2", domain: "Technical" },
   { name: "Sara Tadesse", email: "sara@pcic.com", password: "password123", role: "member", batch: "batch_1", domain: "Events" },
   { name: "Dawit Hailu", email: "dawit@pcic.com", password: "password123", role: "member", batch: "batch_3", domain: "T&G" },

@@ -14,7 +14,7 @@ Internal management system for the Peak Craft Informatics Community (PCIC). Mono
 - Shadcn UI components from `@/components/ui/` — don't create new CSS
 - Backend: routes -> controllers -> models pattern, all under `/api/`
 - Auth: JWT tokens, `auth` middleware + `roleGuard(...)` for protected routes
-- Roles: president, pm, mc, domain_leader, member
+- Roles: president, pm, mc, domain_leader, pr, member
 
 ## Code Patterns
 

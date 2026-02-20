@@ -50,7 +50,7 @@ server/src/
 
 ## User Roles
 
-`president` > `pm` > `mc` > `domain_leader` > `member`
+`president` > `pm` > `mc` > `domain_leader` > `pr` > `member`
 
 - Backend: `roleGuard("president", "pm")` middleware
 - Frontend: `<RoleGate allowedRoles={["president", "pm"]}>` component

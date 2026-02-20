@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, minlength: 6 },
     role: {
       type: String,
-      enum: ["president", "pm", "mc", "domain_leader", "member"],
+      enum: ["president", "pm", "mc", "domain_leader", "pr", "member"],
       default: "member",
     },
     batch: { type: String, enum: ["batch_1", "batch_2", "batch_3"], default: "batch_1" },
