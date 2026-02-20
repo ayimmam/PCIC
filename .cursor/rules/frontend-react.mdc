@@ -1,0 +1,41 @@
+---
+description: React/JSX coding conventions for the PCIC frontend
+globs: client/**/*.{jsx,js,css}
+alwaysApply: false
+---
+
+# Frontend Conventions
+
+## File Patterns
+
+- Components: `client/src/components/{module}/ComponentName.jsx` — PascalCase
+- Pages: `client/src/pages/PageName.jsx` — PascalCase
+- Hooks: `client/src/hooks/useFeature.js` — camelCase with `use` prefix
+- UI primitives: `client/src/components/ui/` — Shadcn generated, avoid editing directly
+
+## Component Rules
+
+- **JSX only** — never use TypeScript (.tsx/.ts). No type annotations, no interfaces.
+- Use `export default function ComponentName()` for pages and feature components
+- Use `React.forwardRef` for UI primitives (Shadcn pattern)
+- Use `@/` path alias for all imports: `import { Button } from "@/components/ui/button"`
+- Styling is **Tailwind CSS classes only** — no CSS modules, no styled-components
+- Use `cn()` from `@/lib/utils` to merge conditional classes
+
+## Data Fetching
+
+- Always use React Query hooks from `client/src/hooks/`:
+  - `useEvents()`, `useDecisions()`, `useStrikes()`, `useCandidates()`, `useMembers()`
+- Mutations invalidate queries via `queryClient.invalidateQueries()`
+- API errors are caught and shown via `toast.error()` from Sonner
+
+## Forms
+
+- Use `react-hook-form` + `zod` schemas + `@hookform/resolvers/zod`
+- Define zod schema above the component, pass to `useForm({ resolver: zodResolver(schema) })`
+
+## Auth / Access Control
+
+- Wrap protected content in `<RoleGate allowedRoles={[...]}>`
+- Never check roles inline — use the RoleGate component
+- Auth state comes from `useAuth()` hook (wraps AuthContext)

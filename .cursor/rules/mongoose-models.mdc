@@ -1,0 +1,36 @@
+---
+description: MongoDB schema conventions and existing model reference
+globs: server/src/models/*.js
+alwaysApply: false
+---
+
+# Mongoose Model Reference
+
+## Existing Models
+
+**User** — `name, email, password, role, batch, domain, status`
+- role: president | pm | mc | domain_leader | member
+- batch: batch_1 | batch_2 | batch_3
+- domain: T&G | Technical | Events | Marketing | Finance | General
+- status: active | warning | inactive
+
+**Event** — `title, description, date, domain, capacity, createdBy, attendees[]`
+- attendees subdoc: `{ memberId, checkedIn, checkedInAt }`
+
+**Decision** — `title, description, category, status, stakeholders[], author, timeline[]`
+- category: exam-schedule | holiday | stakeholder | project-progress | learning
+- status: pending | approved | implemented
+- timeline subdoc: `{ status, changedBy, changedAt, notes }`
+
+**Strike** — `memberId, reason, assignedBy` (timestamps auto)
+
+**Candidate** — `name, email, motivation, portfolioUrl, resumeUrl, status, reviewedBy, reviewedAt`
+- status: pending | approved | rejected
+
+## When Adding New Models
+
+1. Create in `server/src/models/ModelName.js` (PascalCase)
+2. Always include `{ timestamps: true }` option
+3. Use enums for fixed-value fields
+4. Add a controller in `server/src/controllers/`
+5. Add routes in `server/src/routes/`, mount in `server/src/index.js`

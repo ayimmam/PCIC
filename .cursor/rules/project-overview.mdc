@@ -1,0 +1,49 @@
+---
+description: PCIC project context — architecture, structure, and domain knowledge. Always loaded so the AI understands what this project is.
+alwaysApply: true
+---
+
+# PCIC Internal Management System
+
+Web platform for the Peak Craft Informatics Community (800+ students across IS, CS, IT at Hawassa University). Digitizes membership tracking, event attendance, leadership decisions, and disciplinary workflows.
+
+## Monorepo Layout
+
+```
+client/   — React 18 (JSX, NOT TypeScript) + Vite + Shadcn UI + Tailwind CSS
+server/   — Node.js + Express.js + Mongoose (ES modules)
+```
+
+## Tech Stack (do NOT deviate)
+
+- **Frontend:** React 18, Vite, JSX (no .tsx/.ts), Shadcn UI, Tailwind CSS, React Router v6, TanStack React Query v5, react-hook-form + zod, Sonner toasts, Lucide icons
+- **Backend:** Express.js, Mongoose ODM, JWT auth (jsonwebtoken + bcryptjs), Multer uploads, Nodemailer emails
+- **Database:** MongoDB
+- **Path alias:** `@/` maps to `client/src/` via jsconfig.json
+
+## Feature Modules (Phase 2 MVP)
+
+| ID | Feature | Frontend Page | Backend Route |
+|----|---------|--------------|---------------|
+| F-001 | Event Attendance Tracker | `/events` | `/api/events` |
+| F-012 | Centralized Decision Repo | `/reports` | `/api/decisions` |
+| F-006 | Disciplinary Strike System | `/admin` (strikes tab) | `/api/strikes` |
+| F-004 | Accelerated Entry Workflow | `/career` | `/api/candidates` |
+| — | Member Management | `/members` | `/api/members` |
+
+## User Roles (enforced by `roleGuard.js` backend + `RoleGate.jsx` frontend)
+
+- `president` — full access, approve/reject candidates
+- `pm` — manage members, change statuses, create decisions
+- `mc` — change member status, track attendance
+- `domain_leader` — create events for their domain
+- `member` — view events, check in, view own profile
+
+## Key Conventions
+
+- All files use **ES module** syntax (`import`/`export`, not `require`)
+- Frontend components are **functional components** with hooks
+- API calls go through `client/src/api/axios.js` (auto-attaches JWT)
+- Data fetching uses **React Query hooks** in `client/src/hooks/`
+- Backend follows **routes → controllers → models** pattern
+- All API routes are prefixed with `/api/`
