@@ -51,7 +51,9 @@ export default function Career() {
         )}
       </div>
 
-      <CandidateUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} />
+      {user?.role === "member" && (
+        <CandidateUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} />
+      )}
 
       <CandidateReview
         candidate={reviewCandidate}

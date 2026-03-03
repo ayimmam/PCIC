@@ -27,8 +27,8 @@ export function useSubmitApplication() {
 export function useApproveCandidate() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id) => {
-      const { data } = await api.put(`/candidates/${id}/approve`);
+    mutationFn: async ({ id, comment }) => {
+      const { data } = await api.put(`/candidates/${id}/approve`, { comment });
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["candidates"] }),
@@ -38,8 +38,8 @@ export function useApproveCandidate() {
 export function useRejectCandidate() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id) => {
-      const { data } = await api.put(`/candidates/${id}/reject`);
+    mutationFn: async ({ id, comment }) => {
+      const { data } = await api.put(`/candidates/${id}/reject`, { comment });
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["candidates"] }),

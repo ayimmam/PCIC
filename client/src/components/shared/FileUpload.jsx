@@ -4,7 +4,12 @@ import { Upload, X, FileText, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export default function FileUpload({ onFileSelect, accept = { "application/pdf": [".pdf"], "image/*": [".png", ".jpg", ".jpeg"] }, maxSize = 10 * 1024 * 1024, label = "Upload file" }) {
+export default function FileUpload({
+  onFileSelect,
+  accept = { "application/pdf": [".pdf"], "image/*": [".png", ".jpg", ".jpeg"] },
+  maxSize = 10 * 1024 * 1024,
+  label = "Upload file",
+}) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
 
@@ -13,7 +18,8 @@ export default function FileUpload({ onFileSelect, accept = { "application/pdf":
       setError("");
       if (rejectedFiles.length > 0) {
         const err = rejectedFiles[0].errors[0];
-        setError(err.code === "file-too-large" ? "File is too large (max 10MB)" : err.message);
+        const maxMb = (maxSize / (1024 * 1024)).toFixed(1);
+        setError(err.code === "file-too-large" ? `File is too large (max ${maxMb}MB)` : err.message);
         return;
       }
       if (acceptedFiles.length > 0) {
@@ -54,7 +60,9 @@ export default function FileUpload({ onFileSelect, accept = { "application/pdf":
           <p className="text-sm text-muted-foreground">
             {isDragActive ? "Drop the file here" : "Drag & drop or click to select"}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">PDF or images, max 10MB</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            PDF or images, max {(maxSize / (1024 * 1024)).toFixed(1)}MB
+          </p>
         </div>
       ) : (
         <div className="flex items-center gap-3 rounded-lg border p-3">

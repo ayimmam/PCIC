@@ -8,6 +8,7 @@ import { useMemberStrikes } from "@/hooks/useStrikes";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import StatusChangeDialog from "./StatusChangeDialog";
+import BatchChangeDialog from "./BatchChangeDialog";
 
 const statusVariant = { active: "success", warning: "warning", inactive: "danger" };
 const batchLabels = { batch_1: "Batch 1", batch_2: "Batch 2", batch_3: "Batch 3" };
@@ -15,8 +16,10 @@ const batchLabels = { batch_1: "Batch 1", batch_2: "Batch 2", batch_3: "Batch 3"
 export default function MemberDetail({ member, open, onOpenChange }) {
   const { user } = useAuth();
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [batchDialogOpen, setBatchDialogOpen] = useState(false);
   const { data: strikes } = useMemberStrikes(member?._id);
   const canChangeStatus = ["president", "pm", "mc"].includes(user?.role);
+  const canAdjustBatch = user?.role === "president";
 
   if (!member) return null;
 
@@ -56,11 +59,18 @@ export default function MemberDetail({ member, open, onOpenChange }) {
               </div>
             </div>
 
-            {canChangeStatus && (
-              <Button variant="outline" className="w-full" onClick={() => setStatusDialogOpen(true)}>
-                Change Status
-              </Button>
-            )}
+            <div className="space-y-2">
+              {canChangeStatus && (
+                <Button variant="outline" className="w-full" onClick={() => setStatusDialogOpen(true)}>
+                  Change Status
+                </Button>
+              )}
+              {canAdjustBatch && (
+                <Button variant="outline" className="w-full" onClick={() => setBatchDialogOpen(true)}>
+                  Adjust Level (Promote/Demote)
+                </Button>
+              )}
+            </div>
 
             <Separator />
 
@@ -75,6 +85,11 @@ export default function MemberDetail({ member, open, onOpenChange }) {
       <StatusChangeDialog
         open={statusDialogOpen}
         onOpenChange={setStatusDialogOpen}
+        member={member}
+      />
+      <BatchChangeDialog
+        open={batchDialogOpen}
+        onOpenChange={setBatchDialogOpen}
         member={member}
       />
     </>

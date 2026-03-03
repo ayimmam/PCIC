@@ -7,14 +7,7 @@ import upload from "../utils/upload.js";
 const router = Router();
 
 router.get("/", auth, getCandidates);
-router.post(
-  "/",
-  upload.fields([
-    { name: "portfolio", maxCount: 1 },
-    { name: "resume", maxCount: 1 },
-  ]),
-  submitApplication
-);
+router.post("/", auth, roleGuard("member"), upload.single("portfolio"), submitApplication);
 router.put("/:id/approve", auth, roleGuard("president"), approveCandidate);
 router.put("/:id/reject", auth, roleGuard("president"), rejectCandidate);
 

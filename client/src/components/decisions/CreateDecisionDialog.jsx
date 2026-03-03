@@ -16,6 +16,7 @@ const CATEGORIES = [
   { value: "stakeholder", label: "Stakeholder" },
   { value: "project-progress", label: "Project Progress" },
   { value: "learning", label: "Learning" },
+  { value: "membership", label: "Membership" },
 ];
 
 const schema = z.object({

@@ -19,7 +19,7 @@ export default function CandidateList({ candidates, isLoading, showActions = fal
 
   const handleApprove = async (id) => {
     try {
-      await approve.mutateAsync(id);
+      await approve.mutateAsync({ id });
       toast.success("Candidate approved");
     } catch {
       toast.error("Approval failed");
@@ -28,7 +28,7 @@ export default function CandidateList({ candidates, isLoading, showActions = fal
 
   const handleReject = async (id) => {
     try {
-      await reject.mutateAsync(id);
+      await reject.mutateAsync({ id });
       toast.success("Candidate rejected");
     } catch {
       toast.error("Rejection failed");

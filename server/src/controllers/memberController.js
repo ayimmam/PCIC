@@ -59,3 +59,27 @@ export const updateMemberStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const updateMemberBatch = async (req, res) => {
+  try {
+    const { batch } = req.body;
+    const allowedBatches = ["batch_1", "batch_2", "batch_3"];
+
+    if (!batch || !allowedBatches.includes(batch)) {
+      return res.status(400).json({ message: "Invalid batch value" });
+    }
+
+    const member = await User.findById(req.params.id);
+    if (!member) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
+    member.batch = batch;
+    await member.save();
+
+    const { password: _, ...memberData } = member.toObject();
+    res.json(memberData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

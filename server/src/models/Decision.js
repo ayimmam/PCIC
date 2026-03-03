@@ -13,7 +13,7 @@ const decisionSchema = new mongoose.Schema(
     description: { type: String, default: "" },
     category: {
       type: String,
-      enum: ["exam-schedule", "holiday", "stakeholder", "project-progress", "learning"],
+      enum: ["exam-schedule", "holiday", "stakeholder", "project-progress", "learning", "membership"],
       required: true,
     },
     status: {

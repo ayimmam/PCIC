@@ -20,7 +20,7 @@ export default function CandidateReview({ candidate, open, onOpenChange }) {
 
   const handleApprove = async () => {
     try {
-      await approve.mutateAsync(candidate._id);
+      await approve.mutateAsync({ id: candidate._id });
       toast.success("Candidate approved");
       onOpenChange(false);
     } catch {
@@ -30,7 +30,7 @@ export default function CandidateReview({ candidate, open, onOpenChange }) {
 
   const handleReject = async () => {
     try {
-      await reject.mutateAsync(candidate._id);
+      await reject.mutateAsync({ id: candidate._id });
       toast.success("Candidate rejected");
       onOpenChange(false);
     } catch {
