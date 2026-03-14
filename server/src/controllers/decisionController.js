@@ -151,7 +151,8 @@ export const updateDecision = async (req, res) => {
       { path: "timeline.changedBy", select: "name" },
       { path: "actionItems.assignee", select: "name email" },
     ]);
-    res.json(populated);
+    const payload = populated.toObject ? populated.toObject() : populated;
+    res.json(payload);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

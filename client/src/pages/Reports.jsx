@@ -60,10 +60,20 @@ export default function Reports() {
       </Tabs>
 
       <DecisionDetail
+        key={selectedDecision ? `${selectedDecision._id}-${(selectedDecision.actionItems || []).length}` : "none"}
         decision={selectedDecision}
         open={!!selectedDecision}
         onOpenChange={(open) => !open && setSelectedDecision(null)}
-        onDecisionUpdated={setSelectedDecision}
+        onDecisionUpdated={(updated) => {
+          if (!updated) {
+            setSelectedDecision(null);
+            return;
+          }
+          setSelectedDecision({
+            ...updated,
+            actionItems: Array.isArray(updated.actionItems) ? [...updated.actionItems] : [],
+          });
+        }}
       />
 
       <CreateDecisionDialog open={createOpen} onOpenChange={setCreateOpen} />
