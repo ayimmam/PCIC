@@ -9,7 +9,7 @@ const timelineEntrySchema = new mongoose.Schema({
 
 const actionItemSchema = new mongoose.Schema({
   task: { type: String, required: true, trim: true },
-  assignee: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   dueDate: { type: Date, required: true },
   status: { type: String, enum: ["pending", "done"], default: "pending" },
 });
@@ -18,11 +18,7 @@ const decisionSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
-    category: {
-      type: String,
-      enum: ["exam-schedule", "holiday", "stakeholder", "project-progress", "learning"],
-      required: true,
-    },
+    category: { type: String, required: true, trim: true },
     status: {
       type: String,
       enum: ["pending", "approved", "implemented"],
@@ -30,7 +26,7 @@ const decisionSchema = new mongoose.Schema(
     },
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
-    stakeholders: [{ type: String }],
+    stakeholders: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     timeline: [timelineEntrySchema],
     actionItems: [actionItemSchema],

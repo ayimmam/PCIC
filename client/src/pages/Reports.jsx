@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageHeader from "@/components/shared/PageHeader";
 import DecisionTable from "@/components/decisions/DecisionTable";
 import DecisionFilters from "@/components/decisions/DecisionFilters";
@@ -9,9 +10,12 @@ import RoleGate from "@/components/shared/RoleGate";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, List, CalendarDays } from "lucide-react";
-import { useDecisions } from "@/hooks/useDecisions";
+import { useDecisions, useDecision } from "@/hooks/useDecisions";
 
 export default function Reports() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const openDecisionId = location.state?.openDecisionId;
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("");
   const [selectedDecision, setSelectedDecision] = useState(null);
@@ -21,6 +25,14 @@ export default function Reports() {
     category: category || undefined,
     status: status || undefined,
   });
+  const { data: decisionById } = useDecision(openDecisionId || null);
+
+  useEffect(() => {
+    if (openDecisionId && decisionById) {
+      setSelectedDecision(decisionById);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [openDecisionId, decisionById, navigate, location.pathname]);
 
   return (
     <div className="space-y-6">

@@ -32,7 +32,7 @@ const seedDecisions = [
     description: "Approved exam dates for Spring 2026",
     category: "exam-schedule",
     status: "approved",
-    stakeholders: ["President", "Faculty"],
+    stakeholders: [],
     startDate: new Date(now + 60 * day),
     endDate: new Date(now + 65 * day),
   },
@@ -41,7 +41,7 @@ const seedDecisions = [
     description: "Holiday dates confirmed",
     category: "holiday",
     status: "implemented",
-    stakeholders: ["President"],
+    stakeholders: [],
     startDate: new Date(now + 45 * day),
     endDate: new Date(now + 45 * day),
   },
@@ -50,7 +50,7 @@ const seedDecisions = [
     description: "Review of batch 2 project progress",
     category: "project-progress",
     status: "pending",
-    stakeholders: ["PM", "Domain Leaders"],
+    stakeholders: [],
     actionItems: [],
   },
 ];
@@ -91,8 +91,8 @@ async function seed() {
       };
       if (d.title === "Project Milestone Review" && pm) {
         base.actionItems = [
-          { task: "Send agenda to domain leaders", assignee: pm._id, dueDate: new Date(now + 14 * day), status: "pending" },
-          { task: "Collect progress reports", assignee: president._id, dueDate: new Date(now + 21 * day), status: "pending" },
+          { task: "Send agenda to domain leaders", assignees: [pm._id], dueDate: new Date(now + 14 * day), status: "pending" },
+          { task: "Collect progress reports", assignees: [president._id], dueDate: new Date(now + 21 * day), status: "pending" },
         ];
       }
       return base;

@@ -36,7 +36,10 @@ export function useCreateDecision() {
       const { data } = await api.post("/decisions", decisionData);
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["decisions"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["decisions"] });
+      qc.invalidateQueries({ queryKey: ["decisions", "my-tasks"] });
+    },
   });
 }
 
@@ -47,6 +50,30 @@ export function useUpdateDecision() {
       const { data } = await api.put(`/decisions/${id}`, decisionData);
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["decisions"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["decisions"] });
+      qc.invalidateQueries({ queryKey: ["decisions", "my-tasks"] });
+    },
+  });
+}
+
+export function useMyTasks() {
+  return useQuery({
+    queryKey: ["decisions", "my-tasks"],
+    queryFn: async () => {
+      const { data } = await api.get("/decisions/my-tasks");
+      return data;
+    },
+  });
+}
+
+export function useDecision(id) {
+  return useQuery({
+    queryKey: ["decisions", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/decisions/${id}`);
+      return data;
+    },
+    enabled: !!id,
   });
 }

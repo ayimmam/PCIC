@@ -44,13 +44,17 @@ export default function ScheduleCalendar() {
 
   const actionTasks =
     decisions.flatMap((d) =>
-      (d.actionItems || []).map((item, index) => ({
-        id: `${d._id}-${index}`,
-        decisionTitle: d.title,
-        task: item.task,
-        dueDate: item.dueDate,
-        assigneeName: item.assignee?.name || "",
-      }))
+      (d.actionItems || []).map((item, index) => {
+        const assignees = item.assignees || (item.assignee ? [item.assignee] : []);
+        const assigneeName = assignees.map((a) => (a && a.name) || a).filter(Boolean).join(", ");
+        return {
+          id: `${d._id}-${index}`,
+          decisionTitle: d.title,
+          task: item.task,
+          dueDate: item.dueDate,
+          assigneeName,
+        };
+      })
     ) || [];
 
   const first = startOfMonth(month);

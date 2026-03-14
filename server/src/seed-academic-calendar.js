@@ -81,7 +81,7 @@ async function run() {
       status: "implemented",
       startDate: new Date(e.start),
       endDate: new Date(e.end),
-      stakeholders: ["University"],
+      stakeholders: [],
       author: author._id,
       timeline: [{ status: "implemented", changedBy: author._id, notes: "Academic calendar" }],
       actionItems: [],
