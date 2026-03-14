@@ -21,6 +21,8 @@ const candidateSchema = new mongoose.Schema(
     },
     reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     reviewedAt: { type: Date },
+    // President's message (reason for approve/reject) — visible to applicant and MC
+    reviewComment: { type: String, default: "" },
   },
   { timestamps: true }
 );

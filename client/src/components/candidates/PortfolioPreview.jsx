@@ -1,4 +1,4 @@
-import { FileText, Image } from "lucide-react";
+import { FileText, Image, ExternalLink } from "lucide-react";
 
 export default function PortfolioPreview({ url, type = "pdf" }) {
   if (!url) {
@@ -15,9 +15,19 @@ export default function PortfolioPreview({ url, type = "pdf" }) {
   if (isPdf) {
     return (
       <div className="overflow-hidden rounded-lg border">
-        <div className="flex items-center gap-2 border-b bg-muted/50 px-3 py-2">
-          <FileText className="h-4 w-4" />
-          <span className="text-sm font-medium">Portfolio Document</span>
+        <div className="flex items-center justify-between border-b bg-muted/50 px-3 py-2">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span className="text-sm font-medium">Portfolio Document</span>
+          </div>
+          <a
+            href={fullUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            Open PDF <ExternalLink className="h-3 w-3" />
+          </a>
         </div>
         <iframe src={fullUrl} className="h-[500px] w-full" title="Portfolio Preview" />
       </div>

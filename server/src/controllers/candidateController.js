@@ -121,6 +121,7 @@ export const approveCandidate = async (req, res) => {
     candidate.status = "approved";
     candidate.reviewedBy = req.user._id;
     candidate.reviewedAt = new Date();
+    candidate.reviewComment = comment != null ? String(comment).trim() : "";
     candidate.requestedBatch = targetBatch;
     await candidate.save();
 
@@ -181,6 +182,7 @@ export const rejectCandidate = async (req, res) => {
     candidate.status = "rejected";
     candidate.reviewedBy = req.user._id;
     candidate.reviewedAt = new Date();
+    candidate.reviewComment = comment != null ? String(comment).trim() : "";
     await candidate.save();
 
     // Log rejection into the decision repository

@@ -50,12 +50,12 @@ export default function Members() {
 
       <div className="space-y-3">
         {memberCandidate && (
-          <div className="rounded-lg border bg-muted/60 p-3 text-sm">
+          <div className="rounded-lg border bg-muted/60 p-3 text-sm space-y-2">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <p className="font-medium">
                   Promotion request{" "}
-                  <Badge variant={memberCandidate.status === "pending" ? "warning" : "success"}>
+                  <Badge variant={memberCandidate.status === "pending" ? "warning" : memberCandidate.status === "approved" ? "success" : "destructive"}>
                     {memberCandidate.status}
                   </Badge>
                 </p>
@@ -73,10 +73,16 @@ export default function Members() {
                 </Button>
               )}
             </div>
+            {(memberCandidate.status === "approved" || memberCandidate.status === "rejected") && memberCandidate.reviewComment && (
+              <div className="rounded border border-border/80 bg-background p-2 text-xs">
+                <p className="font-medium text-muted-foreground mb-0.5">President&apos;s message</p>
+                <p className="whitespace-pre-wrap">{memberCandidate.reviewComment}</p>
+              </div>
+            )}
           </div>
         )}
 
-        {user?.role === "president" && pendingPromotions.length > 0 && (
+        {(user?.role === "president" || user?.role === "mc") && pendingPromotions.length > 0 && (
           <div className="flex items-center justify-between rounded-lg border bg-primary/5 p-3 text-sm">
             <div>
               <p className="font-medium">
@@ -84,7 +90,7 @@ export default function Members() {
                 <Badge variant="warning">{pendingPromotions.length}</Badge>
               </p>
               <p className="text-xs text-muted-foreground">
-                Click &quot;Review next&quot; to open the candidate&apos;s portfolio from this page.
+                Click &quot;Review next&quot; to open the candidate&apos;s portfolio and view their PDF.
               </p>
             </div>
             <Button
