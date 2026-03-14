@@ -64,6 +64,7 @@ export function useMyTasks() {
       const { data } = await api.get("/decisions/my-tasks");
       return data;
     },
+    refetchOnWindowFocus: true,
   });
 }
 
