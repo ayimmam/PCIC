@@ -23,21 +23,35 @@ const schema = z.object({
   description: z.string().optional(),
   category: z.string().min(1, "Category is required"),
   stakeholders: z.string().optional(),
-});
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+}).refine((data) => {
+  if (data.category === "exam-schedule") return !!(data.startDate && data.endDate);
+  if (data.category === "holiday") return !!data.startDate;
+  return true;
+}, { message: "Exam schedule requires start and end date; holiday requires start date.", path: ["startDate"] });
 
 export default function CreateDecisionDialog({ open, onOpenChange }) {
   const { register, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { title: "", description: "", category: "", stakeholders: "" },
+    defaultValues: { title: "", description: "", category: "", stakeholders: "", startDate: "", endDate: "" },
   });
+
+  const category = watch("category");
+  const showDates = category === "exam-schedule" || category === "holiday";
+  const showEndDate = category === "exam-schedule";
 
   const createDecision = useCreateDecision();
 
   const onSubmit = async (values) => {
     try {
       const payload = {
-        ...values,
+        title: values.title,
+        description: values.description,
+        category: values.category,
         stakeholders: values.stakeholders ? values.stakeholders.split(",").map((s) => s.trim()) : [],
+        startDate: values.startDate || undefined,
+        endDate: values.endDate || undefined,
       };
       await createDecision.mutateAsync(payload);
       toast.success("Decision created");
@@ -77,6 +91,22 @@ export default function CreateDecisionDialog({ open, onOpenChange }) {
             </Select>
             {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
           </div>
+          {showDates && (
+            <>
+              <div className="space-y-2">
+                <Label>Start date {category === "holiday" && "(required for holiday)"}</Label>
+                <Input type="date" {...register("startDate")} />
+                {errors.startDate && <p className="text-sm text-destructive">{errors.startDate.message}</p>}
+              </div>
+              {showEndDate && (
+                <div className="space-y-2">
+                  <Label>End date (required for exam schedule)</Label>
+                  <Input type="date" {...register("endDate")} />
+                  {errors.endDate && <p className="text-sm text-destructive">{errors.endDate.message}</p>}
+                </div>
+              )}
+            </>
+          )}
           <div className="space-y-2">
             <Label>Stakeholders (comma-separated)</Label>
             <Input {...register("stakeholders")} placeholder="e.g. President, PM, Domain Leader" />

@@ -24,10 +24,35 @@ const seedEvents = [
   { title: "Past Workshop: Git Basics", description: "Introduction to Git and GitHub", date: new Date(Date.now() - 7 * 86400000), domain: "Technical", capacity: 30 },
 ];
 
+const now = Date.now();
+const day = 86400000;
 const seedDecisions = [
-  { title: "Midterm Exam Schedule", description: "Approved exam dates for Spring 2026", category: "exam-schedule", status: "approved", stakeholders: ["President", "Faculty"] },
-  { title: "Easter Holiday Break", description: "Holiday dates confirmed", category: "holiday", status: "implemented", stakeholders: ["President"] },
-  { title: "Project Milestone Review", description: "Review of batch 2 project progress", category: "project-progress", status: "pending", stakeholders: ["PM", "Domain Leaders"] },
+  {
+    title: "Midterm Exam Schedule",
+    description: "Approved exam dates for Spring 2026",
+    category: "exam-schedule",
+    status: "approved",
+    stakeholders: ["President", "Faculty"],
+    startDate: new Date(now + 60 * day),
+    endDate: new Date(now + 65 * day),
+  },
+  {
+    title: "Easter Holiday Break",
+    description: "Holiday dates confirmed",
+    category: "holiday",
+    status: "implemented",
+    stakeholders: ["President"],
+    startDate: new Date(now + 45 * day),
+    endDate: new Date(now + 45 * day),
+  },
+  {
+    title: "Project Milestone Review",
+    description: "Review of batch 2 project progress",
+    category: "project-progress",
+    status: "pending",
+    stakeholders: ["PM", "Domain Leaders"],
+    actionItems: [],
+  },
 ];
 
 async function seed() {
@@ -49,6 +74,7 @@ async function seed() {
     console.log(`Seeded ${users.length} users`);
 
     const president = users.find((u) => u.role === "president");
+    const pm = users.find((u) => u.role === "pm");
 
     // Seed events with createdBy
     const events = await Event.create(
@@ -56,14 +82,22 @@ async function seed() {
     );
     console.log(`Seeded ${events.length} events`);
 
-    // Seed decisions with author and timeline
-    const decisions = await Decision.create(
-      seedDecisions.map((d) => ({
+    // Seed decisions with author, timeline, and optional action items
+    const decisionsData = seedDecisions.map((d) => {
+      const base = {
         ...d,
         author: president._id,
         timeline: [{ status: d.status, changedBy: president._id, notes: "Seeded" }],
-      }))
-    );
+      };
+      if (d.title === "Project Milestone Review" && pm) {
+        base.actionItems = [
+          { task: "Send agenda to domain leaders", assignee: pm._id, dueDate: new Date(now + 14 * day), status: "pending" },
+          { task: "Collect progress reports", assignee: president._id, dueDate: new Date(now + 21 * day), status: "pending" },
+        ];
+      }
+      return base;
+    });
+    const decisions = await Decision.create(decisionsData);
     console.log(`Seeded ${decisions.length} decisions`);
 
     console.log("\n--- Test Accounts ---");

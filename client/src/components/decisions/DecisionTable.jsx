@@ -28,7 +28,8 @@ export default function DecisionTable({ decisions, isLoading, onRowClick }) {
           <TableHead>Title</TableHead>
           <TableHead>Category</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Date</TableHead>
+          <TableHead>Schedule</TableHead>
+          <TableHead>Created</TableHead>
           <TableHead>Author</TableHead>
         </TableRow>
       </TableHeader>
@@ -41,6 +42,13 @@ export default function DecisionTable({ decisions, isLoading, onRowClick }) {
             </TableCell>
             <TableCell>
               <Badge variant={statusVariant[d.status] || "secondary"}>{d.status}</Badge>
+            </TableCell>
+            <TableCell className="text-muted-foreground text-sm">
+              {d.startDate
+                ? d.endDate
+                  ? `${format(new Date(d.startDate), "MMM d")} – ${format(new Date(d.endDate), "MMM d, yyyy")}`
+                  : format(new Date(d.startDate), "MMM d, yyyy")
+                : "—"}
             </TableCell>
             <TableCell>{format(new Date(d.createdAt), "MMM d, yyyy")}</TableCell>
             <TableCell>{d.author?.name || "—"}</TableCell>

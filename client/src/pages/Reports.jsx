@@ -4,9 +4,11 @@ import DecisionTable from "@/components/decisions/DecisionTable";
 import DecisionFilters from "@/components/decisions/DecisionFilters";
 import DecisionDetail from "@/components/decisions/DecisionDetail";
 import CreateDecisionDialog from "@/components/decisions/CreateDecisionDialog";
+import ScheduleCalendar from "@/components/decisions/ScheduleCalendar";
 import RoleGate from "@/components/shared/RoleGate";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, List, CalendarDays } from "lucide-react";
 import { useDecisions } from "@/hooks/useDecisions";
 
 export default function Reports() {
@@ -34,19 +36,34 @@ export default function Reports() {
         }
       />
 
-      <DecisionFilters
-        category={category}
-        status={status}
-        onCategoryChange={setCategory}
-        onStatusChange={setStatus}
-      />
-
-      <DecisionTable decisions={decisions} isLoading={isLoading} onRowClick={setSelectedDecision} />
+      <Tabs defaultValue="list" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="list" className="gap-2">
+            <List className="h-4 w-4" /> List
+          </TabsTrigger>
+          <TabsTrigger value="schedule" className="gap-2">
+            <CalendarDays className="h-4 w-4" /> Schedule
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="list" className="space-y-4">
+          <DecisionFilters
+            category={category}
+            status={status}
+            onCategoryChange={setCategory}
+            onStatusChange={setStatus}
+          />
+          <DecisionTable decisions={decisions} isLoading={isLoading} onRowClick={setSelectedDecision} />
+        </TabsContent>
+        <TabsContent value="schedule">
+          <ScheduleCalendar />
+        </TabsContent>
+      </Tabs>
 
       <DecisionDetail
         decision={selectedDecision}
         open={!!selectedDecision}
         onOpenChange={(open) => !open && setSelectedDecision(null)}
+        onDecisionUpdated={setSelectedDecision}
       />
 
       <CreateDecisionDialog open={createOpen} onOpenChange={setCreateOpen} />

@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateEvent } from "@/hooks/useEvents";
+import { useDecisionConflicts } from "@/hooks/useDecisions";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 
 const DOMAINS = ["T&G", "Technical", "Events", "Marketing", "Finance", "General"];
 
@@ -25,6 +27,8 @@ export default function CreateEventForm({ onSuccess }) {
     defaultValues: { title: "", description: "", date: "", domain: "", capacity: 0 },
   });
 
+  const dateValue = watch("date");
+  const { data: conflicts = [] } = useDecisionConflicts(dateValue || null);
   const createEvent = useCreateEvent();
 
   const onSubmit = async (values) => {
@@ -56,6 +60,14 @@ export default function CreateEventForm({ onSuccess }) {
           <Label htmlFor="date">Date & Time</Label>
           <Input id="date" type="datetime-local" {...register("date")} />
           {errors.date && <p className="text-sm text-destructive">{errors.date.message}</p>}
+          {conflicts.length > 0 && (
+            <div className="flex gap-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-2 text-sm text-amber-800 dark:text-amber-200">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>
+                This date overlaps with: {conflicts.map((c) => c.title).join(", ")}. Consider choosing another day.
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">

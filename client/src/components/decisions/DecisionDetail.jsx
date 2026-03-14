@@ -2,19 +2,26 @@ import { format } from "date-fns";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateDecision } from "@/hooks/useDecisions";
 import { useAuth } from "@/hooks/useAuth";
+import { useMembers } from "@/hooks/useMembers";
 import { toast } from "sonner";
 import { useState } from "react";
 
 const statusVariant = { pending: "warning", approved: "success", implemented: "default" };
 
-export default function DecisionDetail({ decision, open, onOpenChange }) {
+export default function DecisionDetail({ decision, open, onOpenChange, onDecisionUpdated }) {
   const { user } = useAuth();
   const updateDecision = useUpdateDecision();
+  const { data: members } = useMembers({});
   const [newStatus, setNewStatus] = useState("");
+  const [newTask, setNewTask] = useState("");
+  const [newAssignee, setNewAssignee] = useState("");
+  const [newDueDate, setNewDueDate] = useState("");
   const isAdmin = ["president", "pm"].includes(user?.role);
 
   if (!decision) return null;
@@ -22,11 +29,52 @@ export default function DecisionDetail({ decision, open, onOpenChange }) {
   const handleStatusChange = async () => {
     if (!newStatus || newStatus === decision.status) return;
     try {
-      await updateDecision.mutateAsync({ id: decision._id, status: newStatus });
+      const updated = await updateDecision.mutateAsync({ id: decision._id, status: newStatus });
       toast.success("Status updated");
       setNewStatus("");
+      onDecisionUpdated?.(updated);
     } catch {
       toast.error("Failed to update status");
+    }
+  };
+
+  const handleAddActionItem = async () => {
+    if (!newTask.trim() || !newAssignee || !newDueDate) {
+      toast.error("Task, assignee, and due date are required");
+      return;
+    }
+    try {
+      const items = (decision.actionItems || []).map((a) => ({
+        task: a.task,
+        assignee: a.assignee?._id || a.assignee,
+        dueDate: a.dueDate,
+        status: a.status || "pending",
+      }));
+      items.push({ task: newTask.trim(), assignee: newAssignee, dueDate: newDueDate, status: "pending" });
+      const updated = await updateDecision.mutateAsync({ id: decision._id, actionItems: items });
+      toast.success("Next step added");
+      setNewTask("");
+      setNewAssignee("");
+      setNewDueDate("");
+      onDecisionUpdated?.(updated);
+    } catch {
+      toast.error("Failed to add next step");
+    }
+  };
+
+  const handleToggleActionItem = async (index) => {
+    const items = (decision.actionItems || []).map((a, i) => ({
+      task: a.task,
+      assignee: a.assignee?._id || a.assignee,
+      dueDate: a.dueDate,
+      status: i === index ? (a.status === "done" ? "pending" : "done") : (a.status || "pending"),
+    }));
+    try {
+      const updated = await updateDecision.mutateAsync({ id: decision._id, actionItems: items });
+      toast.success("Updated");
+      onDecisionUpdated?.(updated);
+    } catch {
+      toast.error("Failed to update");
     }
   };
 
@@ -43,6 +91,14 @@ export default function DecisionDetail({ decision, open, onOpenChange }) {
             <Badge variant="outline">{decision.category}</Badge>
             <Badge variant={statusVariant[decision.status]}>{decision.status}</Badge>
           </div>
+
+          {(decision.startDate || decision.endDate) && (
+            <p className="text-sm text-muted-foreground">
+              {decision.startDate && format(new Date(decision.startDate), "MMM d, yyyy")}
+              {decision.startDate && decision.endDate && " — "}
+              {decision.endDate && format(new Date(decision.endDate), "MMM d, yyyy")}
+            </p>
+          )}
 
           {decision.description && (
             <p className="text-sm text-muted-foreground">{decision.description}</p>
@@ -79,6 +135,74 @@ export default function DecisionDetail({ decision, open, onOpenChange }) {
               </div>
             </>
           )}
+
+          <Separator />
+
+          <div>
+            <h3 className="mb-3 font-semibold">Next steps</h3>
+            {decision.actionItems?.length > 0 ? (
+              <div className="space-y-2">
+                {decision.actionItems.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between gap-2 rounded-md border p-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{item.task}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.assignee?.name || "—"} · Due {item.dueDate && format(new Date(item.dueDate), "MMM d, yyyy")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={item.status === "done" ? "default" : "secondary"}>
+                        {item.status || "pending"}
+                      </Badge>
+                      {isAdmin && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleActionItem(i)}
+                          disabled={updateDecision.isPending}
+                        >
+                          {item.status === "done" ? "Reopen" : "Done"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No next steps yet.</p>
+            )}
+            {isAdmin && (
+              <div className="mt-3 space-y-2 rounded-md border border-dashed p-3">
+                <Label className="text-xs">Add next step</Label>
+                <Input
+                  placeholder="Task description"
+                  value={newTask}
+                  onChange={(e) => setNewTask(e.target.value)}
+                />
+                <Select value={newAssignee} onValueChange={setNewAssignee}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Assign to" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {members?.map((m) => (
+                      <SelectItem key={m._id} value={m._id}>{m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="date"
+                  value={newDueDate}
+                  onChange={(e) => setNewDueDate(e.target.value)}
+                />
+                <Button size="sm" onClick={handleAddActionItem} disabled={updateDecision.isPending}>
+                  Add
+                </Button>
+              </div>
+            )}
+          </div>
 
           <Separator />
 
