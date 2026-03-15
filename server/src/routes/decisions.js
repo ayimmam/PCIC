@@ -17,6 +17,6 @@ router.get("/my-tasks", auth, getMyTasks);
 router.get("/conflicts", auth, getConflicts);
 router.get("/:id", auth, getDecisionById);
 router.post("/", auth, roleGuard("president", "pm"), createDecision);
-router.put("/:id", auth, roleGuard("president", "pm"), updateDecision);
+router.put("/:id", auth, updateDecision);
 
 export default router;

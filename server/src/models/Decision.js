@@ -11,7 +11,7 @@ const actionItemSchema = new mongoose.Schema({
   task: { type: String, required: true, trim: true },
   assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   dueDate: { type: Date, required: true },
-  status: { type: String, enum: ["pending", "done"], default: "pending" },
+  status: { type: String, enum: ["pending", "done", "approved"], default: "pending" },
 });
 
 const decisionSchema = new mongoose.Schema(

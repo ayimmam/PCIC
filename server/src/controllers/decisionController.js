@@ -189,6 +189,7 @@ export const updateDecision = async (req, res) => {
     const decision = await Decision.findById(req.params.id);
     if (!decision) return res.status(404).json({ message: "Decision not found" });
 
+    const isAdmin = req.user.role === "president" || req.user.role === "pm";
     const {
       title,
       description,
@@ -201,28 +202,44 @@ export const updateDecision = async (req, res) => {
       actionItems,
     } = req.body;
 
-    if (title != null) decision.title = title;
-    if (description != null) decision.description = description;
-    if (category != null) decision.category = String(category).trim();
-    if (stakeholders != null) {
-      decision.stakeholders = Array.isArray(stakeholders)
-        ? stakeholders.filter((id) => id && mongoose.Types.ObjectId.isValid(id))
-        : [];
-    }
-    if (startDate !== undefined) decision.startDate = parseDate(startDate) || null;
-    if (endDate !== undefined) decision.endDate = parseDate(endDate) || null;
+    if (isAdmin) {
+      if (title != null) decision.title = title;
+      if (description != null) decision.description = description;
+      if (category != null) decision.category = String(category).trim();
+      if (stakeholders != null) {
+        decision.stakeholders = Array.isArray(stakeholders)
+          ? stakeholders.filter((id) => id && mongoose.Types.ObjectId.isValid(id))
+          : [];
+      }
+      if (startDate !== undefined) decision.startDate = parseDate(startDate) || null;
+      if (endDate !== undefined) decision.endDate = parseDate(endDate) || null;
 
-    if (Array.isArray(actionItems)) {
-      decision.actionItems = normalizeActionItems(actionItems);
-    }
+      if (Array.isArray(actionItems)) {
+        decision.actionItems = normalizeActionItems(actionItems);
+      }
 
-    if (status && status !== decision.status) {
-      decision.status = status;
-      decision.timeline.push({
-        status,
-        changedBy: req.user._id,
-        notes: notes || `Status changed to ${status}`,
-      });
+      if (status && status !== decision.status) {
+        decision.status = status;
+        decision.timeline.push({
+          status,
+          changedBy: req.user._id,
+          notes: notes || `Status changed to ${status}`,
+        });
+      }
+    } else {
+      // Assignee: only allow setting own action item status to "done"
+      if (Array.isArray(actionItems)) {
+        const userId = req.user._id.toString();
+        for (let i = 0; i < actionItems.length && i < decision.actionItems.length; i++) {
+          const existing = decision.actionItems[i];
+          const assigneeIds = (existing.assignees || []).map((a) =>
+            a && (a._id || a) ? String(a._id || a) : String(a)
+          );
+          if (assigneeIds.includes(userId) && actionItems[i]?.status === "done") {
+            decision.actionItems[i].status = "done";
+          }
+        }
+      }
     }
 
     await decision.save();

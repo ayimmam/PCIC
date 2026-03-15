@@ -153,7 +153,7 @@ export default function ScheduleCalendar() {
                           key={t.id}
                           type="button"
                           onClick={() => setSelectedTask(t)}
-                          className="inline-flex h-2 w-2 items-center justify-center rounded-full bg-sky-500"
+                          className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sky-500"
                           title={`${t.task} • ${t.assigneeName || "Unassigned"}`}
                         />
                       ))}

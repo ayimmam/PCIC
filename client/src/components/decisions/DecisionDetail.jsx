@@ -143,21 +143,25 @@ export default function DecisionDetail({ decision, open, onOpenChange, onDecisio
     }
   };
 
-  const handleToggleActionItem = async (index) => {
+  const handleActionItemStatusChange = async (index, newStatus) => {
     const items = (decision.actionItems || []).map((item, i) => {
       const payload = actionItemToPayload(item);
-      if (i === index) {
-        payload.status = payload.status === "done" ? "pending" : "done";
-      }
+      if (i === index) payload.status = newStatus;
       return payload;
     });
     try {
       const updated = await updateDecision.mutateAsync({ id: decision._id, actionItems: items });
-      toast.success("Updated");
+      toast.success(newStatus === "approved" ? "Completion approved" : newStatus === "done" ? "Marked as done" : "Reopened");
       onDecisionUpdated?.(updated);
-    } catch {
+    } catch (error) {
       toast.error("Failed to update");
     }
+  };
+
+  const isAssignee = (item) => {
+    const assignees = item.assignees || (item.assignee ? [item.assignee] : []);
+    const ids = assignees.map((a) => (a && (a._id || a)) || a).filter(Boolean);
+    return user?._id && ids.some((id) => String(id) === String(user._id));
   };
 
   const stakeholderNames = (decision.stakeholders || []).map((s) =>
@@ -231,6 +235,13 @@ export default function DecisionDetail({ decision, open, onOpenChange, onDecisio
                 {decision.actionItems.map((item, i) => {
                   const assignees = item.assignees || (item.assignee ? [item.assignee] : []);
                   const names = assignees.map((a) => (a?.name ? a.name : a)).filter(Boolean);
+                  const status = item.status || "pending";
+                  const userIsAssignee = isAssignee(item);
+                  const canMarkDone = userIsAssignee && status === "pending";
+                  const canApprove = isAdmin && status === "done";
+                  const canReopen = isAdmin && (status === "done" || status === "approved");
+                  const statusLabel = status === "done" ? "Awaiting approval" : status === "approved" ? "Approved" : "Pending";
+                  const badgeVariant = status === "approved" ? "default" : status === "done" ? "secondary" : "warning";
                   return (
                     <div
                       key={i}
@@ -243,18 +254,48 @@ export default function DecisionDetail({ decision, open, onOpenChange, onDecisio
                           {item.dueDate && format(new Date(item.dueDate), "MMM d, yyyy")}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={item.status === "done" ? "default" : "secondary"}>
-                          {item.status || "pending"}
+                      <div className="flex flex-shrink-0 items-center gap-2">
+                        <Badge variant={badgeVariant}>
+                          {statusLabel}
                         </Badge>
-                        {isAdmin && (
+                        {canMarkDone && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleToggleActionItem(i)}
+                            onClick={() => handleActionItemStatusChange(i, "done")}
                             disabled={updateDecision.isPending}
                           >
-                            {item.status === "done" ? "Reopen" : "Done"}
+                            Mark as done
+                          </Button>
+                        )}
+                        {canApprove && (
+                          <>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleActionItemStatusChange(i, "approved")}
+                              disabled={updateDecision.isPending}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleActionItemStatusChange(i, "pending")}
+                              disabled={updateDecision.isPending}
+                            >
+                              Reopen
+                            </Button>
+                          </>
+                        )}
+                        {canReopen && status === "approved" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleActionItemStatusChange(i, "pending")}
+                            disabled={updateDecision.isPending}
+                          >
+                            Reopen
                           </Button>
                         )}
                       </div>
