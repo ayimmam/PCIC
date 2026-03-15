@@ -117,8 +117,9 @@ server/                         Express backend
 | POST | `/api/events/:id/checkin` | Toggle check-in |
 | GET | `/api/members` | List members (filterable) |
 | PUT | `/api/members/:id/status` | Change member status |
-| GET/POST | `/api/decisions` | List / create decisions |
-| PUT | `/api/decisions/:id` | Update decision status |
+| GET/POST | `/api/decisions` | List / create decisions (query: category, status, startDate, endDate, checkDate) |
+| GET | `/api/decisions/conflicts?date=YYYY-MM-DD` | Decisions (exam/holiday) overlapping date |
+| PUT | `/api/decisions/:id` | Update decision (incl. status, dates, actionItems) |
 | GET/POST | `/api/strikes` | List / assign strikes |
 | GET | `/api/strikes/member/:id` | Member strike history |
 | GET/POST | `/api/candidates` | List / submit application |
