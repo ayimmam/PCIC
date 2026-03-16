@@ -17,10 +17,13 @@ alwaysApply: false
 **Event** — `title, description, date, domain, capacity, createdBy, attendees[]`
 - attendees subdoc: `{ memberId, checkedIn, checkedInAt }`
 
-**Decision** — `title, description, category, status, stakeholders[], author, timeline[]`
+**Decision** — `title, description, category, status, startDate, endDate, stakeholders[], author, timeline[], actionItems[]`
 - category: exam-schedule | holiday | stakeholder | project-progress | learning
 - status: pending | approved | implemented
+- startDate/endDate: optional; required for exam-schedule (both), holiday (at least startDate)
 - timeline subdoc: `{ status, changedBy, changedAt, notes }`
+- actionItems subdoc: `{ task, assignee (ref User), dueDate, status (pending | done) }`
+- GET /api/decisions/conflicts?date=YYYY-MM-DD returns exam-schedule and holiday decisions overlapping that date
 
 **Strike** — `memberId, reason, assignedBy` (timestamps auto)
 

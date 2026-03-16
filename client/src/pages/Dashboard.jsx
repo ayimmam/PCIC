@@ -1,8 +1,12 @@
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Users, AlertTriangle, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CalendarDays, Users, AlertTriangle, TrendingUp, FileText, ChevronRight } from "lucide-react";
 import { useEventCount } from "@/hooks/useEvents";
 import { useMemberCount } from "@/hooks/useMembers";
 import { useStrikeSummary } from "@/hooks/useStrikes";
+import { useMyTasks } from "@/hooks/useDecisions";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function StatCard({ title, value, description, icon: Icon, isLoading }) {
@@ -30,6 +34,7 @@ export default function Dashboard() {
   const { data: eventCount, isLoading: eventsLoading } = useEventCount();
   const { data: memberCount, isLoading: membersLoading } = useMemberCount();
   const { data: strikeSummary, isLoading: strikesLoading } = useStrikeSummary();
+  const { data: myTasks = [], isLoading: tasksLoading } = useMyTasks();
 
   return (
     <div className="space-y-6">
@@ -113,6 +118,40 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="h-4 w-4" /> My Tasks
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Pending action items assigned to you</p>
+        </CardHeader>
+        <CardContent>
+          {tasksLoading ? (
+            <Skeleton className="h-24 w-full" />
+          ) : myTasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No pending tasks.</p>
+          ) : (
+            <ul className="space-y-3">
+              {myTasks.map((t, i) => (
+                <li key={`${t.decisionId}-${t.itemIndex}-${i}`} className="flex items-center justify-between gap-2 rounded-md border p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate">{t.task}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t.decisionTitle} · Due {t.dueDate && format(new Date(t.dueDate), "MMM d, yyyy")}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/reports" state={{ openDecisionId: t.decisionId }}>
+                      View <ChevronRight className="h-4 w-4 ml-0.5" />
+                    </Link>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

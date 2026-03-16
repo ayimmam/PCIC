@@ -8,9 +8,24 @@ export function useDecisions(filters = {}) {
       const params = new URLSearchParams();
       if (filters.category) params.set("category", filters.category);
       if (filters.status) params.set("status", filters.status);
+      if (filters.startDate) params.set("startDate", filters.startDate);
+      if (filters.endDate) params.set("endDate", filters.endDate);
+      if (filters.checkDate) params.set("checkDate", filters.checkDate);
       const { data } = await api.get(`/decisions?${params}`);
       return data;
     },
+  });
+}
+
+export function useDecisionConflicts(date) {
+  const dateStr = date ? new Date(date).toISOString().slice(0, 10) : null;
+  return useQuery({
+    queryKey: ["decisions", "conflicts", dateStr],
+    queryFn: async () => {
+      const { data } = await api.get(`/decisions/conflicts?date=${dateStr}`);
+      return data;
+    },
+    enabled: !!dateStr,
   });
 }
 
@@ -21,7 +36,10 @@ export function useCreateDecision() {
       const { data } = await api.post("/decisions", decisionData);
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["decisions"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["decisions"] });
+      qc.invalidateQueries({ queryKey: ["decisions", "my-tasks"] });
+    },
   });
 }
 
@@ -32,6 +50,31 @@ export function useUpdateDecision() {
       const { data } = await api.put(`/decisions/${id}`, decisionData);
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["decisions"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["decisions"] });
+      qc.invalidateQueries({ queryKey: ["decisions", "my-tasks"] });
+    },
+  });
+}
+
+export function useMyTasks() {
+  return useQuery({
+    queryKey: ["decisions", "my-tasks"],
+    queryFn: async () => {
+      const { data } = await api.get("/decisions/my-tasks");
+      return data;
+    },
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useDecision(id) {
+  return useQuery({
+    queryKey: ["decisions", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/decisions/${id}`);
+      return data;
+    },
+    enabled: !!id,
   });
 }
