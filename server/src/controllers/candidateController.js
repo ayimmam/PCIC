@@ -92,6 +92,10 @@ export const approveCandidate = async (req, res) => {
   try {
     const { comment, requestedBatch } = req.body || {};
 
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({ message: "A review note is required" });
+    }
+
     const candidate = await Candidate.findById(req.params.id);
     if (!candidate) return res.status(404).json({ message: "Candidate not found" });
 
@@ -175,6 +179,10 @@ export const approveCandidate = async (req, res) => {
 export const rejectCandidate = async (req, res) => {
   try {
     const { comment } = req.body || {};
+
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({ message: "A review note is required" });
+    }
 
     const candidate = await Candidate.findById(req.params.id);
     if (!candidate) return res.status(404).json({ message: "Candidate not found" });
