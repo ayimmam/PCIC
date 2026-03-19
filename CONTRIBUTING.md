@@ -61,7 +61,7 @@ Open http://localhost:5173 and log in with `president@pcic.com` / `password123`.
 
 ## Git Workflow
 
-We use a **feature branch workflow**. Nobody pushes directly to `main`.
+We use a **feature branch workflow**. **Apply all changes only on a branch—never commit directly to `main`.** Nobody pushes to `main` except via an approved Pull Request.
 
 ### Step-by-step for every task
 
@@ -70,10 +70,10 @@ We use a **feature branch workflow**. Nobody pushes directly to `main`.
 git checkout main
 git pull origin main
 
-# 2. Create a feature branch
+# 2. Create a feature branch (all your changes stay on this branch)
 git checkout -b feature/your-feature-name
 
-# 3. Work on your changes, commit often
+# 3. Work on your changes on this branch only, commit often
 git add .
 git commit -m "feat(module): short description of what you did"
 

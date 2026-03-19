@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useMyTasks } from "@/hooks/useDecisions";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
+import { Badge } from "@/components/ui/badge";
 import RoleGate from "@/components/shared/RoleGate";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
@@ -36,6 +38,7 @@ const navItems = [
 function Sidebar({ user, onLogout }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: myTasks = [] } = useMyTasks();
 
   return (
     <>
@@ -83,6 +86,11 @@ function Sidebar({ user, onLogout }) {
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
+                {item.path === "/" && myTasks.length > 0 && (
+                  <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1.5 text-xs">
+                    {myTasks.length}
+                  </Badge>
+                )}
               </Link>
             );
           })}
