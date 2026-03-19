@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageHeader from "@/components/shared/PageHeader";
@@ -17,6 +17,15 @@ export default function Events() {
 
   const filters = { timeframe: tab === "create" ? undefined : tab, domain: domainFilter || undefined };
   const { data: events, isLoading } = useEvents(tab === "create" ? {} : filters);
+
+  useEffect(() => {
+    if (!selectedEvent || !events?.length) return;
+
+    const updatedSelectedEvent = events.find((event) => event._id === selectedEvent._id);
+    if (updatedSelectedEvent) {
+      setSelectedEvent(updatedSelectedEvent);
+    }
+  }, [events, selectedEvent]);
 
   return (
     <div className="space-y-6">
