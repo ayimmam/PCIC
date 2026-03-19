@@ -40,7 +40,53 @@ export const getEventCount = async (_req, res) => {
   try {
     const count = await Event.countDocuments();
     const upcoming = await Event.countDocuments({ date: { $gte: new Date() } });
-    res.json({ total: count, upcoming });
+
+    const attendanceAggregation = await Event.aggregate([
+      {
+        $project: {
+          reportedAttendeeCount: { $ifNull: ["$reportedAttendeeCount", 0] },
+          hasAttendanceReport: {
+            $cond: [{ $ne: ["$reportedAttendeeCount", null] }, 1, 0],
+          },
+          checkedInCount: {
+            $size: {
+              $filter: {
+                input: "$attendees",
+                as: "attendee",
+                cond: { $eq: ["$$attendee.checkedIn", true] },
+              },
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          reportedAttendeesTotal: { $sum: "$reportedAttendeeCount" },
+          checkedInTotal: { $sum: "$checkedInCount" },
+          eventsWithAttendanceReport: { $sum: "$hasAttendanceReport" },
+        },
+      },
+    ]);
+
+    const aggregate = attendanceAggregation[0] || {
+      reportedAttendeesTotal: 0,
+      checkedInTotal: 0,
+      eventsWithAttendanceReport: 0,
+    };
+
+    const latestReportedEvent = await Event.findOne({ reportedAttendeeCount: { $ne: null } })
+      .select("title date reportedAttendeeCount")
+      .sort({ date: -1 });
+
+    res.json({
+      total: count,
+      upcoming,
+      reportedAttendeesTotal: aggregate.reportedAttendeesTotal,
+      checkedInTotal: aggregate.checkedInTotal,
+      eventsWithAttendanceReport: aggregate.eventsWithAttendanceReport,
+      latestReportedEvent,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -48,13 +94,17 @@ export const getEventCount = async (_req, res) => {
 
 export const createEvent = async (req, res) => {
   try {
-    const { title, description, date, domain, capacity } = req.body;
+    const { title, description, date, domain, capacity, reportedAttendeeCount } = req.body;
     const event = await Event.create({
       title,
       description,
       date,
       domain,
       capacity,
+      reportedAttendeeCount:
+        reportedAttendeeCount === "" || reportedAttendeeCount === undefined
+          ? null
+          : reportedAttendeeCount,
       createdBy: req.user._id,
     });
     res.status(201).json(event);

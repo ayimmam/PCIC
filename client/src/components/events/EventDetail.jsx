@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import AttendanceList from "./AttendanceList";
-import { useCheckin } from "@/hooks/useEvents";
+import { useCheckin, useUpdateEvent } from "@/hooks/useEvents";
 import { useMembers } from "@/hooks/useMembers";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -14,16 +14,30 @@ import { toast } from "sonner";
 export default function EventDetail({ event, open, onOpenChange }) {
   const { user } = useAuth();
   const checkin = useCheckin();
+  const updateEvent = useUpdateEvent();
   const [search, setSearch] = useState("");
   const [pendingMemberId, setPendingMemberId] = useState(null);
+  const [reportedAttendeeCount, setReportedAttendeeCount] = useState("");
 
   const canManageAttendance = ["president", "pm", "mc", "domain_leader"].includes(user?.role);
 
-  if (!event) return null;
+  const checkedInCount = event?.attendees?.filter((attendee) => attendee.checkedIn).length || 0;
+  const attendanceCount = event?.attendees?.length || 0;
+  const remainingCapacity =
+    event?.capacity > 0 ? Math.max(event.capacity - checkedInCount, 0) : null;
 
-  const checkedInCount = event.attendees?.filter((attendee) => attendee.checkedIn).length || 0;
-  const attendanceCount = event.attendees?.length || 0;
-  const remainingCapacity = event.capacity > 0 ? Math.max(event.capacity - checkedInCount, 0) : null;
+  useEffect(() => {
+    if (!event) {
+      setReportedAttendeeCount("");
+      return;
+    }
+
+    if (event.reportedAttendeeCount === null || event.reportedAttendeeCount === undefined) {
+      setReportedAttendeeCount("");
+      return;
+    }
+    setReportedAttendeeCount(String(event.reportedAttendeeCount));
+  }, [event]);
 
   const { data: memberOptions = [], isFetching: isSearchingMembers } = useMembers(
     {
@@ -38,10 +52,17 @@ export default function EventDetail({ event, open, onOpenChange }) {
   const quickResults = useMemo(
     () =>
       memberOptions
-        .filter((member) => !event.attendees?.some((a) => (a.memberId?._id || a.memberId) === member._id && a.checkedIn))
+        .filter(
+          (member) =>
+            !event?.attendees?.some(
+              (a) => (a.memberId?._id || a.memberId) === member._id && a.checkedIn
+            )
+        )
         .slice(0, 8),
-    [memberOptions, event.attendees]
+    [memberOptions, event]
   );
+
+  if (!event) return null;
 
   const handleSelfCheckin = async () => {
     try {
@@ -92,6 +113,31 @@ export default function EventDetail({ event, open, onOpenChange }) {
     }
   };
 
+  const handleAttendanceSave = async () => {
+    const trimmed = reportedAttendeeCount.trim();
+
+    if (trimmed !== "" && Number.isNaN(Number(trimmed))) {
+      toast.error("Attendee number must be a valid number");
+      return;
+    }
+
+    const parsedValue = trimmed === "" ? null : Number(trimmed);
+    if (parsedValue !== null && parsedValue < 0) {
+      toast.error("Attendee number cannot be negative");
+      return;
+    }
+
+    try {
+      await updateEvent.mutateAsync({
+        id: event._id,
+        reportedAttendeeCount: parsedValue,
+      });
+      toast.success("Attendance number updated");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to update attendance number");
+    }
+  };
+
   const alreadyCheckedIn = event.attendees?.some(
     (a) => (a.memberId?._id || a.memberId) === user?._id && a.checkedIn
   );
@@ -114,6 +160,9 @@ export default function EventDetail({ event, open, onOpenChange }) {
             </Badge>
             {event.capacity > 0 && <Badge variant="outline">Capacity: {event.capacity}</Badge>}
             <Badge variant="outline">Checked In: {checkedInCount}</Badge>
+            <Badge variant="outline">
+              Reported: {event.reportedAttendeeCount ?? "Not set"}
+            </Badge>
             {event.capacity > 0 && <Badge variant="outline">Remaining: {remainingCapacity}</Badge>}
           </div>
 
@@ -130,6 +179,33 @@ export default function EventDetail({ event, open, onOpenChange }) {
             <p className="rounded-md bg-green-50 p-3 text-center text-sm font-medium text-green-700">
               You are checked in
             </p>
+          )}
+
+          {canManageAttendance && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="font-semibold">Attendance Number</h3>
+                <p className="text-xs text-muted-foreground">
+                  Enter the final attendee number for this event. Leave empty to clear.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={reportedAttendeeCount}
+                    onChange={(e) => setReportedAttendeeCount(e.target.value)}
+                    placeholder="e.g. 120"
+                  />
+                  <Button
+                    onClick={handleAttendanceSave}
+                    disabled={updateEvent.isPending}
+                  >
+                    {updateEvent.isPending ? "Saving..." : "Save"}
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
 
           {canManageAttendance && (
