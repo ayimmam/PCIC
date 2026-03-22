@@ -2,6 +2,8 @@
 
 Web platform for the **Peak Craft Informatics Community** (PCIC) — digitizing membership tracking, event attendance, leadership decision-making, and disciplinary workflows for 800+ students across IS, CS, and IT departments at Hawassa University.
 
+[Project Charter](https://docs.google.com/document/d/13s_bz3TTA7pzrWkVOkqtRqvQMdi11rO7mzkxiCkHwxc/edit?usp=sharing)
+
 ## Tech Stack
 
 | Layer | Technology |
