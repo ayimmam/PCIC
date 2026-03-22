@@ -33,11 +33,9 @@ JWT_SECRET=pick-a-random-secret-string
 PORT=5000
 ```
 
-### 4. Whitelist your IP in Atlas
 
-Go to [MongoDB Atlas](https://cloud.mongodb.com/) → **Network Access** → **Add IP Address** → **Add Current IP Address**. Without this, the server cannot connect to the database.
 
-### 5. Seed test data
+### 4. Seed test data
 
 ```bash
 npm run seed
@@ -45,7 +43,7 @@ npm run seed
 
 This creates test accounts you can log in with (see README for the full list).
 
-### 6. Start development servers
+### 5. Start development servers
 
 Open **two terminals**:
 
