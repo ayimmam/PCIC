@@ -36,6 +36,10 @@ export default function Dashboard() {
   const { data: strikeSummary, isLoading: strikesLoading } = useStrikeSummary();
   const { data: myTasks = [], isLoading: tasksLoading } = useMyTasks();
 
+  const latestReportedLabel = eventCount?.latestReportedEvent
+    ? `${eventCount.latestReportedEvent.title} (${eventCount.latestReportedEvent.reportedAttendeeCount})`
+    : "No attendance number submitted yet";
+
   return (
     <div className="space-y-6">
       <div>
@@ -49,6 +53,13 @@ export default function Dashboard() {
           value={eventCount?.total || 0}
           description={`${eventCount?.upcoming || 0} upcoming`}
           icon={CalendarDays}
+          isLoading={eventsLoading}
+        />
+        <StatCard
+          title="Reported Attendees"
+          value={eventCount?.reportedAttendeesTotal || 0}
+          description={`${eventCount?.eventsWithAttendanceReport || 0} events submitted`}
+          icon={Users}
           isLoading={eventsLoading}
         />
         <StatCard
@@ -107,12 +118,18 @@ export default function Dashboard() {
                 <span className="font-semibold">{eventCount?.upcoming || 0}</span>
               </div>
               <div className="flex justify-between rounded-md bg-muted p-3">
+                <span className="text-sm">Checked-in Members (All Events)</span>
+                <span className="font-semibold">{eventCount?.checkedInTotal || 0}</span>
+              </div>
+              <div className="flex justify-between rounded-md bg-muted p-3">
                 <span className="text-sm">Members With Strikes</span>
                 <span className="font-semibold">{strikeSummary?.membersWithStrikes || 0}</span>
               </div>
               <div className="flex justify-between rounded-md bg-muted p-3">
-                <span className="text-sm">Max Strikes (Single Member)</span>
-                <span className="font-semibold">{strikeSummary?.maxStrikes || 0}</span>
+                <span className="text-sm">Latest Attendance Report</span>
+                <span className="max-w-[65%] truncate text-right font-semibold" title={latestReportedLabel}>
+                  {latestReportedLabel}
+                </span>
               </div>
             </div>
           </CardContent>

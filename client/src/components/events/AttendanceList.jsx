@@ -8,9 +8,13 @@ import { toast } from "sonner";
 export default function AttendanceList({ eventId, attendees = [] }) {
   const checkin = useCheckin();
 
-  const handleToggle = async (memberId) => {
+  const handleAction = async (memberId, checkedIn) => {
     try {
-      await checkin.mutateAsync({ eventId, memberId });
+      await checkin.mutateAsync({
+        eventId,
+        memberId,
+        action: checkedIn ? "undo" : "checkIn",
+      });
       toast.success("Attendance updated");
     } catch {
       toast.error("Failed to update attendance");
@@ -47,10 +51,10 @@ export default function AttendanceList({ eventId, attendees = [] }) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleToggle(a.memberId?._id || a.memberId)}
+                onClick={() => handleAction(a.memberId?._id || a.memberId, a.checkedIn)}
                 disabled={checkin.isPending}
               >
-                Toggle
+                {a.checkedIn ? "Undo Check-in" : "Check In"}
               </Button>
             </TableCell>
           </TableRow>

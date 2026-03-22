@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/api/axios";
 
-export function useMembers(filters = {}) {
+export function useMembers(filters = {}, options = {}) {
   return useQuery({
     queryKey: ["members", filters],
     queryFn: async () => {
@@ -13,6 +13,7 @@ export function useMembers(filters = {}) {
       const { data } = await api.get(`/members?${params}`);
       return data;
     },
+    ...options,
   });
 }
 
