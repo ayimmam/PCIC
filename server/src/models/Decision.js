@@ -18,7 +18,12 @@ const decisionSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
-    category: { type: String, required: true, trim: true },
+    category: {
+      type: String,
+      enum: ["exam-schedule", "holiday", "stakeholder", "project-progress", "learning", "membership"],
+      required: true,
+    },
+
     status: {
       type: String,
       enum: ["pending", "approved", "implemented"],

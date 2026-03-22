@@ -12,6 +12,7 @@ const categoryLabels = {
   stakeholder: "Stakeholder",
   "project-progress": "Project Progress",
   learning: "Learning",
+  membership: "Membership",
 };
 
 export default function DecisionTable({ decisions, isLoading, onRowClick }) {

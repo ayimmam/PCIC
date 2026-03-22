@@ -38,3 +38,16 @@ export function useUpdateMemberStatus() {
     },
   });
 }
+
+export function useUpdateMemberBatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, batch }) => {
+      const { data } = await api.put(`/members/${id}/batch`, { batch });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}

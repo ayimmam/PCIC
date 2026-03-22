@@ -20,6 +20,7 @@ const DEFAULT_CATEGORIES = [
   { value: "stakeholder", label: "Stakeholder" },
   { value: "project-progress", label: "Project Progress" },
   { value: "learning", label: "Learning" },
+  { value: "membership", label: "Membership" },
 ];
 
 const ADD_OTHER_VALUE = "__add_other__";

@@ -52,3 +52,27 @@ export const sendNewMemberNotification = async (pmEmail, candidateName) => {
 
   await transporter.sendMail(mailOptions);
 };
+
+export const sendPromotionRequestEmail = async (presidentEmail, memberName, currentBatch, requestedBatch, link) => {
+  if (!process.env.SMTP_USER) {
+    console.log(
+      `[Email Skipped] Would notify president at ${presidentEmail} about promotion request for ${memberName} from ${currentBatch} to ${requestedBatch} (${link})`
+    );
+    return;
+  }
+
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to: presidentEmail,
+    subject: "PCIC - Membership Promotion Request",
+    html: `
+      <h2>Membership Promotion Request</h2>
+      <p>Member <strong>${memberName}</strong> has requested promotion from <strong>${currentBatch}</strong> to <strong>${requestedBatch}</strong>.</p>
+      <p>You can review the portfolio and make a decision from the members page:</p>
+      <p><a href="${link}" target="_blank" rel="noopener noreferrer">Open member review</a></p>
+      <p>Regards,<br/>PCIC Management System</p>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
