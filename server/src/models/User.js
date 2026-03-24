@@ -24,7 +24,18 @@ const userSchema = new mongoose.Schema(
     batch: { type: String, enum: ["batch_1", "batch_2", "batch_3"], default: "batch_1" },
     domain: {
       type: String,
-      enum: ["T&G", "Technical", "Events", "Marketing", "Finance", "General"],
+      enum: [
+        "T&G",
+        "Technical",
+        "Events",
+        "Marketing",
+        "Finance",
+        "General",
+        "Code Crafters",
+        "Turing Tribe",
+        "Cyber Crew",
+        "Pixel Peeps",
+      ],
       default: "General",
     },
     status: {

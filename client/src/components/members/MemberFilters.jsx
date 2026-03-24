@@ -2,7 +2,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
-const DOMAINS = ["T&G", "Technical", "Events", "Marketing", "Finance", "General"];
+const DOMAINS = [
+  "T&G",
+  "Technical",
+  "Events",
+  "Marketing",
+  "Finance",
+  "General",
+  "Code Crafters",
+  "Turing Tribe",
+  "Cyber Crew",
+  "Pixel Peeps",
+];
 const BATCHES = [
   { value: "batch_1", label: "Batch 1" },
   { value: "batch_2", label: "Batch 2" },

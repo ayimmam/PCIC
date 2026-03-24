@@ -59,9 +59,16 @@ This creates test accounts you can log in with:
 | Role | Email | Password |
 |------|-------|----------|
 | President | president@pcic.com | password123 |
+| Vice President | vice.president@pcic.com | password123 |
 | Project Manager | pm@pcic.com | password123 |
+| Secretary | secretary@pcic.com | password123 |
+| Public Relations (PR) | pr@pcic.com | password123 |
+| Event Lead | events.lead@pcic.com | password123 |
 | Membership Coordinator | mc@pcic.com | password123 |
-| Domain Leader | tech.lead@pcic.com | password123 |
+| Domain Leader (Code Crafters) | leader.codecrafters@pcic.com | password123 |
+| Domain Leader (Turing Tribe) | leader.turingtribe@pcic.com | password123 |
+| Domain Leader (Cyber Crew) | leader.cybercrew@pcic.com | password123 |
+| Domain Leader (Pixel Peeps) | leader.pixelpeeps@pcic.com | password123 |
 | Member | abebe@pcic.com | password123 |
 
 ### 4. Run

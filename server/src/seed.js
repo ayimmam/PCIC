@@ -10,9 +10,44 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/pcic";
 
 const seedUsers = [
   { name: "Admin President", email: "president@pcic.com", password: "password123", role: "president", batch: "batch_1", domain: "General" },
+  { name: "Vice President", email: "vice.president@pcic.com", password: "password123", role: "vice_president", batch: "batch_1", domain: "General" },
   { name: "Project Manager", email: "pm@pcic.com", password: "password123", role: "pm", batch: "batch_1", domain: "General" },
+  { name: "Secretary", email: "secretary@pcic.com", password: "password123", role: "secretary", batch: "batch_1", domain: "General" },
+  { name: "Public Relations", email: "pr@pcic.com", password: "password123", role: "pr", batch: "batch_1", domain: "Marketing" },
+  { name: "Event Lead", email: "events.lead@pcic.com", password: "password123", role: "event_organizer", batch: "batch_1", domain: "Events" },
   { name: "Membership Coordinator", email: "mc@pcic.com", password: "password123", role: "mc", batch: "batch_1", domain: "General" },
-  { name: "Tech Domain Leader", email: "tech.lead@pcic.com", password: "password123", role: "domain_leader", batch: "batch_2", domain: "Technical" },
+  {
+    name: "Domain Leader — Code Crafters",
+    email: "leader.codecrafters@pcic.com",
+    password: "password123",
+    role: "domain_leader",
+    batch: "batch_2",
+    domain: "Code Crafters",
+  },
+  {
+    name: "Domain Leader — Turing Tribe",
+    email: "leader.turingtribe@pcic.com",
+    password: "password123",
+    role: "domain_leader",
+    batch: "batch_2",
+    domain: "Turing Tribe",
+  },
+  {
+    name: "Domain Leader — Cyber Crew",
+    email: "leader.cybercrew@pcic.com",
+    password: "password123",
+    role: "domain_leader",
+    batch: "batch_2",
+    domain: "Cyber Crew",
+  },
+  {
+    name: "Domain Leader — Pixel Peeps",
+    email: "leader.pixelpeeps@pcic.com",
+    password: "password123",
+    role: "domain_leader",
+    batch: "batch_2",
+    domain: "Pixel Peeps",
+  },
   { name: "Abebe Kebede", email: "abebe@pcic.com", password: "password123", role: "member", batch: "batch_2", domain: "Technical" },
   { name: "Sara Tadesse", email: "sara@pcic.com", password: "password123", role: "member", batch: "batch_1", domain: "Events" },
   { name: "Dawit Hailu", email: "dawit@pcic.com", password: "password123", role: "member", batch: "batch_3", domain: "T&G" },
@@ -101,11 +136,18 @@ async function seed() {
     console.log(`Seeded ${decisions.length} decisions`);
 
     console.log("\n--- Test Accounts ---");
-    console.log("President:  president@pcic.com  / password123");
-    console.log("PM:         pm@pcic.com         / password123");
-    console.log("MC:         mc@pcic.com         / password123");
-    console.log("Leader:     tech.lead@pcic.com  / password123");
-    console.log("Member:     abebe@pcic.com      / password123");
+    console.log("President:       president@pcic.com           / password123");
+    console.log("Vice President:  vice.president@pcic.com      / password123");
+    console.log("PM:              pm@pcic.com                  / password123");
+    console.log("Secretary:       secretary@pcic.com         / password123");
+    console.log("PR:              pr@pcic.com                  / password123");
+    console.log("Event Lead:      events.lead@pcic.com       / password123");
+    console.log("MC:              mc@pcic.com                  / password123");
+    console.log("DL Code Crafters: leader.codecrafters@pcic.com / password123");
+    console.log("DL Turing Tribe: leader.turingtribe@pcic.com  / password123");
+    console.log("DL Cyber Crew:   leader.cybercrew@pcic.com    / password123");
+    console.log("DL Pixel Peeps:  leader.pixelpeeps@pcic.com   / password123");
+    console.log("Member:          abebe@pcic.com               / password123");
 
     await mongoose.disconnect();
     console.log("\nDone. Database seeded successfully.");

@@ -19,7 +19,7 @@ export default function EventDetail({ event, open, onOpenChange }) {
   const [pendingMemberId, setPendingMemberId] = useState(null);
   const [reportedAttendeeCount, setReportedAttendeeCount] = useState("");
 
-  const canManageAttendance = ["president", "pm", "mc", "domain_leader"].includes(user?.role);
+  const canManageAttendance = ["president", "pm", "mc", "domain_leader", "event_organizer"].includes(user?.role);
 
   const checkedInCount = event?.attendees?.filter((attendee) => attendee.checkedIn).length || 0;
   const attendanceCount = event?.attendees?.length || 0;

@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 const domainColors = {
   "T&G": "default",
   Technical: "secondary",
+  "Code Crafters": "outline",
+  "Turing Tribe": "outline",
+  "Cyber Crew": "outline",
+  "Pixel Peeps": "outline",
   Events: "success",
   Marketing: "warning",
   Finance: "outline",

@@ -11,7 +11,18 @@ import { useDecisionConflicts } from "@/hooks/useDecisions";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 
-const DOMAINS = ["T&G", "Technical", "Events", "Marketing", "Finance", "General"];
+const DOMAINS = [
+  "T&G",
+  "Technical",
+  "Events",
+  "Marketing",
+  "Finance",
+  "General",
+  "Code Crafters",
+  "Turing Tribe",
+  "Cyber Crew",
+  "Pixel Peeps",
+];
 
 const eventSchema = z.object({
   title: z.string().min(1, "Title is required"),

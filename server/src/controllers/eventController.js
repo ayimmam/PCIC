@@ -1,6 +1,6 @@
 import Event from "../models/Event.js";
 
-const LEADERSHIP_ROLES = new Set(["president", "pm", "mc", "domain_leader"]);
+const LEADERSHIP_ROLES = new Set(["president", "pm", "mc", "domain_leader", "event_organizer"]);
 
 const getAttendanceSummary = (event) => {
   const total = event.attendees.length;
