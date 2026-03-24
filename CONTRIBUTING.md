@@ -4,7 +4,7 @@ Welcome to the PCIC Internal Management System project! This guide will get you 
 
 ## First-Time Setup
 
-### 1. Clone the repo
+### 1. Clone the repos
 
 ```bash
 git clone https://github.com/ayimmam/PCIC.git
