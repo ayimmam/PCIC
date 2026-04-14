@@ -55,7 +55,7 @@ cd server && npm run dev
 cd client && npm run dev
 ```
 
-Open http://localhost:5173 and log in with `president@pcic.com` / `password123`.
+Open [http://localhost:5173](http://localhost:5173) and log in with `president@pcic.com` / `password123`.
 
 ## Git Workflow
 
@@ -93,12 +93,14 @@ git branch -d feature/your-feature-name
 
 ### Branch naming
 
-| Prefix | Use for | Example |
-|--------|---------|---------|
-| `feature/` | New functionality | `feature/event-filters` |
-| `fix/` | Bug fixes | `fix/login-redirect` |
+
+| Prefix      | Use for                           | Example                      |
+| ----------- | --------------------------------- | ---------------------------- |
+| `feature/`  | New functionality                 | `feature/event-filters`      |
+| `fix/`      | Bug fixes                         | `fix/login-redirect`         |
 | `refactor/` | Code cleanup (no behavior change) | `refactor/extract-api-hooks` |
-| `docs/` | Documentation only | `docs/update-readme` |
+| `docs/`     | Documentation only                | `docs/update-readme`         |
+
 
 ### Commit message format
 
@@ -108,16 +110,19 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 <type>(<scope>): <short description>
 ```
 
-| Type | When to use |
-|------|-------------|
-| `feat` | Adding new functionality |
-| `fix` | Fixing a bug |
+
+| Type       | When to use                                  |
+| ---------- | -------------------------------------------- |
+| `feat`     | Adding new functionality                     |
+| `fix`      | Fixing a bug                                 |
 | `refactor` | Restructuring code without changing behavior |
-| `style` | Formatting, whitespace, missing semicolons |
-| `docs` | Documentation changes only |
-| `chore` | Dependency updates, config changes |
+| `style`    | Formatting, whitespace, missing semicolons   |
+| `docs`     | Documentation changes only                   |
+| `chore`    | Dependency updates, config changes           |
+
 
 Examples:
+
 ```
 feat(events): add domain filter dropdown to event list
 fix(auth): redirect to login on expired token
@@ -186,16 +191,19 @@ Follow this checklist whenever you build something new:
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| `MongoNetworkError` / TLS error | Add your IP in Atlas Network Access |
-| `bad auth : authentication failed` | Check username/password in `server/.env` matches Atlas Database Access |
-| `Cannot find module` | Run `npm run setup` from the project root |
-| Port 5000 already in use | Kill the existing process or change `PORT` in `server/.env` |
-| Frontend can't reach API | Make sure the backend is running on port 5000 (Vite proxies `/api` to it) |
+
+| Problem                            | Solution                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `MongoNetworkError` / TLS error    | Add your IP in Atlas Network Access                                       |
+| `bad auth : authentication failed` | Check username/password in `server/.env` matches Atlas Database Access    |
+| `Cannot find module`               | Run `npm run setup` from the project root                                 |
+| Port 5000 already in use           | Kill the existing process or change `PORT` in `server/.env`               |
+| Frontend can't reach API           | Make sure the backend is running on port 5000 (Vite proxies `/api` to it) |
+
 
 ## Need Help?
 
 - Check the [README](README.md) for an overview of features and API endpoints
 - Check [AGENTS.md](AGENTS.md) for AI assistant context
 - Open an [issue](https://github.com/ayimmam/PCIC/issues) if you're stuck
+
