@@ -41,7 +41,7 @@ server/src/
   config/db.js              — MongoDB connection
   middleware/auth.js         — JWT verification
   middleware/roleGuard.js    — Role-based access control
-  models/                   — Mongoose schemas (User, Event, Decision, Strike, Candidate)
+  models/                   — Mongoose schemas (User, Event, Decision, Strike, Candidate, SummerProjectSubmission)
   controllers/              — Business logic
   routes/                   — Route definitions
   utils/email.js            — Nodemailer helpers

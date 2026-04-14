@@ -11,6 +11,7 @@ import Members from "@/pages/Members";
 import Career from "@/pages/Career";
 import Admin from "@/pages/Admin";
 import Reports from "@/pages/Reports";
+import SummerProject from "@/pages/SummerProject";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -21,6 +22,7 @@ import {
   LogOut,
   Menu,
   X,
+  Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -32,6 +34,12 @@ const navItems = [
   { path: "/members", label: "Members", icon: Users },
   { path: "/reports", label: "Decisions", icon: FileText },
   { path: "/career", label: "Career", icon: Briefcase },
+  {
+    path: "/summer-project",
+    label: "Summer project",
+    icon: Sun,
+    visible: (u) => u?.role === "domain_leader" || (u?.role === "member" && u?.batch === "batch_1"),
+  },
   { path: "/admin", label: "Admin", icon: Shield, roles: ["president", "pm", "mc"] },
 ];
 
@@ -69,6 +77,7 @@ function Sidebar({ user, onLogout }) {
 
         <nav className="flex-1 space-y-1 p-4">
           {navItems.map((item) => {
+            if (item.visible && !item.visible(user)) return null;
             if (item.roles && !item.roles.includes(user?.role)) return null;
             const isActive = location.pathname === item.path;
             return (
@@ -122,6 +131,7 @@ function AppLayout() {
           <Route path="/members" element={<Members />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/career" element={<Career />} />
+          <Route path="/summer-project" element={<SummerProject />} />
           <Route path="/admin" element={
             <RoleGate allowedRoles={["president", "pm", "mc"]} fallback={<Navigate to="/" />}>
               <Admin />

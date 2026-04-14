@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import User from "./models/User.js";
 import Event from "./models/Event.js";
 import Decision from "./models/Decision.js";
+import SummerProjectSubmission from "./models/SummerProjectSubmission.js";
 
 dotenv.config();
 
@@ -50,6 +51,14 @@ const seedUsers = [
   },
   { name: "Abebe Kebede", email: "abebe@pcic.com", password: "password123", role: "member", batch: "batch_2", domain: "Technical" },
   { name: "Sara Tadesse", email: "sara@pcic.com", password: "password123", role: "member", batch: "batch_1", domain: "Events" },
+  {
+    name: "Batch1 Summer Demo",
+    email: "summer.batch1@pcic.com",
+    password: "password123",
+    role: "member",
+    batch: "batch_1",
+    domain: "Code Crafters",
+  },
   { name: "Dawit Hailu", email: "dawit@pcic.com", password: "password123", role: "member", batch: "batch_3", domain: "T&G" },
 ];
 
@@ -99,6 +108,7 @@ async function seed() {
     console.log("Connected to MongoDB");
 
     // Clear existing data
+    await SummerProjectSubmission.deleteMany({});
     await User.deleteMany({});
     await Event.deleteMany({});
     await Decision.deleteMany({});
@@ -135,6 +145,20 @@ async function seed() {
     const decisions = await Decision.create(decisionsData);
     console.log(`Seeded ${decisions.length} decisions`);
 
+    const summerDemo = users.find((u) => u.email === "summer.batch1@pcic.com");
+    const summerCycle = process.env.SUMMER_PROJECT_CYCLE || "summer-2026";
+    if (summerDemo) {
+      await SummerProjectSubmission.create({
+        student: summerDemo._id,
+        fileUrl: "uploads/seed-summer-placeholder.pdf",
+        title: "Demo summer project",
+        notes: "Seeded pending submission — grade as Code Crafters Domain Leader",
+        academicCycle: summerCycle,
+        status: "pending",
+      });
+      console.log("Seeded 1 pending summer project (login leader.codecrafters@pcic.com to grade)");
+    }
+
     console.log("\n--- Test Accounts ---");
     console.log("President:       president@pcic.com           / password123");
     console.log("Vice President:  vice.president@pcic.com      / password123");
@@ -148,6 +172,7 @@ async function seed() {
     console.log("DL Cyber Crew:   leader.cybercrew@pcic.com    / password123");
     console.log("DL Pixel Peeps:  leader.pixelpeeps@pcic.com   / password123");
     console.log("Member:          abebe@pcic.com               / password123");
+    console.log("Summer B1 demo:  summer.batch1@pcic.com       / password123  (pending summer project)");
 
     await mongoose.disconnect();
     console.log("\nDone. Database seeded successfully.");
