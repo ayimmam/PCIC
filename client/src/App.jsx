@@ -61,11 +61,10 @@ function Sidebar({ user, onLogout }) {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center gap-2 border-b px-6">
-          <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-            PC
+        <div className="flex h-16 items-center border-b px-6">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-primary text-[15px] font-bold leading-none tracking-tight text-primary-foreground">
+            PCIC
           </div>
-          <span className="font-semibold">PCIC</span>
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
