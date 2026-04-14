@@ -49,11 +49,17 @@ function fileHref(fileUrl) {
 }
 
 export default function SummerProject() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, loading: authLoading } = useAuth();
   const isDomainLeader = user?.role === "domain_leader";
-  const showMemberPanel = user?.role === "member" && user?.batch === "batch_1";
+  const isMember = user?.role === "member";
+  /** Upload API only allows Batch 1 + non-General domain; Batch 2+ can still view their submission. */
+  const canUpload =
+    isMember &&
+    user?.batch === "batch_1" &&
+    user?.domain &&
+    user.domain !== "General";
 
-  const { data: mine, isLoading: mineLoading } = useMySummerSubmission(showMemberPanel);
+  const { data: mine, isLoading: mineLoading } = useMySummerSubmission(isMember);
   const { data: pending = [], isLoading: pendingLoading } = usePendingSummerSubmissions(isDomainLeader);
 
   useEffect(() => {
@@ -122,16 +128,23 @@ export default function SummerProject() {
     }
   };
 
-  const canAccess = isDomainLeader || showMemberPanel;
+  const canAccess = isDomainLeader || isMember;
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!canAccess) {
     return (
       <div className="space-y-4">
         <PageHeader title="Summer project" subtitle="Batch 1 submissions and domain grading" />
         <p className="text-sm text-muted-foreground">
-          This page is available to Batch 1 members (to upload) and Domain Leaders (to review). If you are Batch 1
-          but do not see the upload form, confirm your account role is &quot;member&quot; and your domain is not
-          General—contact the MC to update your domain.
+          This page is for <strong>members</strong> (view or upload their summer PDF) and <strong>Domain Leaders</strong>{" "}
+          (review their domain). Leadership accounts should use the Members page for oversight.
         </p>
       </div>
     );
@@ -198,9 +211,22 @@ export default function SummerProject() {
         </section>
       )}
 
-      {showMemberPanel && (
+      {isMember && (
         <section className="space-y-4 rounded-lg border bg-card p-4">
           <h2 className="text-lg font-semibold">Your submission</h2>
+          {!canUpload && user?.batch !== "batch_1" ? (
+            <p className="text-sm text-muted-foreground">
+              Summer project <strong>uploads</strong> are only for <strong>Batch 1</strong> members. Your current batch
+              is <strong>{user?.batch?.replace("batch_", "Batch ") || user?.batch || "unknown"}</strong>. If you were
+              promoted after passing, your record for this cycle is still shown below when available.
+            </p>
+          ) : null}
+          {!canUpload && user?.batch === "batch_1" && (!user?.domain || user.domain === "General") ? (
+            <p className="text-sm text-amber-700 dark:text-amber-500">
+              Your profile domain is <strong>General</strong> (or unset). Ask the Membership Coordinator to assign your
+              PCIC domain before you can upload a summer project.
+            </p>
+          ) : null}
           {mineLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : !mine ? (
@@ -251,7 +277,7 @@ export default function SummerProject() {
             </div>
           )}
 
-          {showMemberPanel && (!mine || mine.status === "failed") && (
+          {canUpload && (!mine || mine.status === "failed") && (
             <form onSubmit={handleSubmit(onUpload)} className="space-y-4 border-t pt-4">
               <p className="text-sm text-muted-foreground">
                 {mine?.status === "failed"

@@ -38,7 +38,7 @@ const navItems = [
     path: "/summer-project",
     label: "Summer project",
     icon: Sun,
-    visible: (u) => u?.role === "domain_leader" || (u?.role === "member" && u?.batch === "batch_1"),
+    visible: (u) => u?.role === "domain_leader" || u?.role === "member",
   },
   { path: "/admin", label: "Admin", icon: Shield, roles: ["president", "pm", "mc"] },
 ];
