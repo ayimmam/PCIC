@@ -154,7 +154,7 @@ export default function CandidateReview({ candidate, open, onOpenChange }) {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2 py-2">
-          <Label htmlFor="reason-message">Message (optional but recommended)</Label>
+          <Label htmlFor="reason-message">Review Note <span className="text-destructive">*</span></Label>
           <Textarea
             id="reason-message"
             placeholder="Explain why this application is approved or rejected..."
@@ -171,6 +171,7 @@ export default function CandidateReview({ candidate, open, onOpenChange }) {
           <Button
             onClick={handleConfirmWithReason}
             disabled={
+              !reasonMessage.trim() ||
               (pendingAction === "approve" && approve.isPending) ||
               (pendingAction === "reject" && reject.isPending)
             }

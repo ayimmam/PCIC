@@ -64,3 +64,10 @@ server/src/
 5. Components in `client/src/components/{feature}/`
 6. Page in `client/src/pages/`
 7. Route + nav in `client/src/App.jsx`
+
+## Seed Data & Academic Calendar
+
+- **Dummy/test data** is created via `server/src/seed.js` (script: `npm run seed` in the `server/` folder).
+- **Academic calendar data** for Hawassa University is seeded via `server/src/seed-academic-calendar.js` (script: `npm run seed:academic-calendar` in the `server/` folder).
+- Academic calendar decisions are tagged with the marker `[Academic Calendar]` in the `description` field and **must not be deleted** when cleaning up dummy/test data.
+- When writing cleanup scripts or deleting decisions in bulk, always exclude documents whose `description` contains `[Academic Calendar]`, or re-run `npm run seed:academic-calendar` after a full wipe to restore them.

@@ -49,8 +49,12 @@ export function useUpdateEvent() {
 export function useCheckin() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ eventId, memberId }) => {
-      const { data } = await api.post(`/events/${eventId}/checkin`, { memberId });
+    mutationFn: async ({ eventId, memberId, action, overrideCapacity }) => {
+      const payload = { memberId };
+      if (action) payload.action = action;
+      if (overrideCapacity) payload.overrideCapacity = true;
+
+      const { data } = await api.post(`/events/${eventId}/checkin`, payload);
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),

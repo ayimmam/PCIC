@@ -4,7 +4,7 @@ Welcome to the PCIC Internal Management System project! This guide will get you 
 
 ## First-Time Setup
 
-### 1. Clone the repo
+### 1. Clone the repos
 
 ```bash
 git clone https://github.com/ayimmam/PCIC.git
@@ -33,11 +33,9 @@ JWT_SECRET=pick-a-random-secret-string
 PORT=5000
 ```
 
-### 4. Whitelist your IP in Atlas
 
-Go to [MongoDB Atlas](https://cloud.mongodb.com/) → **Network Access** → **Add IP Address** → **Add Current IP Address**. Without this, the server cannot connect to the database.
 
-### 5. Seed test data
+### 4. Seed test data
 
 ```bash
 npm run seed
@@ -45,7 +43,7 @@ npm run seed
 
 This creates test accounts you can log in with (see README for the full list).
 
-### 6. Start development servers
+### 5. Start development servers
 
 Open **two terminals**:
 
@@ -61,7 +59,7 @@ Open [http://localhost:5173](http://localhost:5173) and log in with `president@p
 
 ## Git Workflow
 
-We use a **feature branch workflow**. Nobody pushes directly to `main`.
+We use a **feature branch workflow**. **Apply all changes only on a branch—never commit directly to `main`.** Nobody pushes to `main` except via an approved Pull Request.
 
 ### Step-by-step for every task
 
@@ -70,10 +68,10 @@ We use a **feature branch workflow**. Nobody pushes directly to `main`.
 git checkout main
 git pull origin main
 
-# 2. Create a feature branch
+# 2. Create a feature branch (all your changes stay on this branch)
 git checkout -b feature/your-feature-name
 
-# 3. Work on your changes, commit often
+# 3. Work on your changes on this branch only, commit often
 git add .
 git commit -m "feat(module): short description of what you did"
 

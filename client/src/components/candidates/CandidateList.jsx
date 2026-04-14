@@ -2,38 +2,15 @@ import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Check, X } from "lucide-react";
+import { ExternalLink, Eye, MessageSquare } from "lucide-react";
 import EmptyState from "@/components/shared/EmptyState";
 import { LoadingTable } from "@/components/shared/LoadingState";
-import { useApproveCandidate, useRejectCandidate } from "@/hooks/useCandidates";
-import { toast } from "sonner";
 
 const statusVariant = { pending: "warning", approved: "success", rejected: "destructive" };
 
 export default function CandidateList({ candidates, isLoading, showActions = false, onReview }) {
-  const approve = useApproveCandidate();
-  const reject = useRejectCandidate();
-
-  if (isLoading) return <LoadingTable rows={5} cols={5} />;
+  if (isLoading) return <LoadingTable rows={5} cols={6} />;
   if (!candidates?.length) return <EmptyState title="No candidates" message="No applications have been submitted yet." />;
-
-  const handleApprove = async (id) => {
-    try {
-      await approve.mutateAsync({ id });
-      toast.success("Candidate approved");
-    } catch {
-      toast.error("Approval failed");
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      await reject.mutateAsync({ id });
-      toast.success("Candidate rejected");
-    } catch {
-      toast.error("Rejection failed");
-    }
-  };
 
   return (
     <Table>
@@ -44,6 +21,7 @@ export default function CandidateList({ candidates, isLoading, showActions = fal
           <TableHead>Submitted</TableHead>
           <TableHead>Portfolio</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Note</TableHead>
           {showActions && <TableHead className="text-right">Actions</TableHead>}
         </TableRow>
       </TableHeader>
@@ -67,14 +45,24 @@ export default function CandidateList({ candidates, isLoading, showActions = fal
             <TableCell>
               <Badge variant={statusVariant[c.status]}>{c.status}</Badge>
             </TableCell>
+            <TableCell className="max-w-[200px]">
+              {c.reviewComment ? (
+                <div
+                  className="flex items-start gap-1.5 text-sm text-muted-foreground"
+                  title={c.reviewComment}
+                >
+                  <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span className="line-clamp-2">{c.reviewComment}</span>
+                </div>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </TableCell>
             {showActions && c.status === "pending" && (
               <TableCell className="text-right">
-                <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                  <Button size="sm" variant="outline" onClick={() => handleApprove(c._id)} disabled={approve.isPending}>
-                    <Check className="mr-1 h-3 w-3" /> Approve
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleReject(c._id)} disabled={reject.isPending}>
-                    <X className="mr-1 h-3 w-3" /> Reject
+                <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                  <Button size="sm" variant="outline" onClick={() => onReview?.(c)}>
+                    <Eye className="mr-1 h-3 w-3" /> Review
                   </Button>
                 </div>
               </TableCell>

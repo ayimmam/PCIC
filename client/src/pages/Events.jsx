@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageHeader from "@/components/shared/PageHeader";
@@ -8,7 +8,18 @@ import CreateEventForm from "@/components/events/CreateEventForm";
 import RoleGate from "@/components/shared/RoleGate";
 import { useEvents } from "@/hooks/useEvents";
 
-const DOMAINS = ["T&G", "Technical", "Events", "Marketing", "Finance", "General"];
+const DOMAINS = [
+  "T&G",
+  "Technical",
+  "Events",
+  "Marketing",
+  "Finance",
+  "General",
+  "Code Crafters",
+  "Turing Tribe",
+  "Cyber Crew",
+  "Pixel Peeps",
+];
 
 export default function Events() {
   const [tab, setTab] = useState("upcoming");
@@ -17,6 +28,15 @@ export default function Events() {
 
   const filters = { timeframe: tab === "create" ? undefined : tab, domain: domainFilter || undefined };
   const { data: events, isLoading } = useEvents(tab === "create" ? {} : filters);
+
+  useEffect(() => {
+    if (!selectedEvent || !events?.length) return;
+
+    const updatedSelectedEvent = events.find((event) => event._id === selectedEvent._id);
+    if (updatedSelectedEvent) {
+      setSelectedEvent(updatedSelectedEvent);
+    }
+  }, [events, selectedEvent]);
 
   return (
     <div className="space-y-6">
@@ -27,7 +47,7 @@ export default function Events() {
           <TabsList>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="past">Past</TabsTrigger>
-            <RoleGate allowedRoles={["president", "pm", "mc", "domain_leader"]}>
+            <RoleGate allowedRoles={["president", "pm", "mc", "domain_leader", "event_organizer"]}>
               <TabsTrigger value="create">Create</TabsTrigger>
             </RoleGate>
           </TabsList>

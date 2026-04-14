@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "seed": "node src/seed.js"
+    "seed": "node src/seed.js",
+    "seed:academic-calendar": "node src/seed-academic-calendar.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
