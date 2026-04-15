@@ -10,19 +10,7 @@ import { useCreateEvent } from "@/hooks/useEvents";
 import { useDecisionConflicts } from "@/hooks/useDecisions";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
-
-const DOMAINS = [
-  "T&G",
-  "Technical",
-  "Events",
-  "Marketing",
-  "Finance",
-  "General",
-  "Code Crafters",
-  "Turing Tribe",
-  "Cyber Crew",
-  "Pixel Peeps",
-];
+import { PCIC_DOMAINS } from "@/lib/pcicDomains";
 
 const eventSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -88,7 +76,7 @@ export default function CreateEventForm({ onSuccess }) {
               <SelectValue placeholder="Select domain" />
             </SelectTrigger>
             <SelectContent>
-              {DOMAINS.map((d) => (
+              {PCIC_DOMAINS.map((d) => (
                 <SelectItem key={d} value={d}>{d}</SelectItem>
               ))}
             </SelectContent>

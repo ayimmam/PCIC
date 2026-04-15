@@ -28,4 +28,20 @@ const upload = multer({
   limits: { fileSize: 1 * 1024 * 1024 }, // 1 MB
 });
 
+const summerPdfFilter = (_req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (ext === ".pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error("Only .pdf files are accepted for summer project upload"), false);
+  }
+};
+
+/** Multer for Batch 1 summer project PDFs (larger limit than generic upload). */
+export const uploadSummerProject = multer({
+  storage,
+  fileFilter: summerPdfFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+});
+
 export default upload;

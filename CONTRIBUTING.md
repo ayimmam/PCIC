@@ -35,13 +35,23 @@ PORT=5000
 
 
 
-### 4. Seed test data
+### 4. Database: migrate existing data or seed a clean slate
+
+**Keeping an existing MongoDB** (old `domain` values like `General`, `Technical`, `Events`, etc.): run the migration once (uses `server/.env` → `MONGODB_URI`):
+
+```bash
+npm run migrate:domains
+```
+
+Maps legacy domain labels to the four PCIC domains, then assigns **Code Crafters** to any remaining unknown or null `domain`. Safe to run multiple times.
+
+**Clean dev database** (deletes users, events, decisions, summer submissions, then inserts demo data):
 
 ```bash
 npm run seed
 ```
 
-This creates test accounts you can log in with (see README for the full list).
+See README for test accounts.
 
 ### 5. Start development servers
 

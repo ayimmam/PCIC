@@ -65,7 +65,7 @@ async function run() {
         password: "nologin",
         role: "member",
         batch: "batch_1",
-        domain: "General",
+        domain: "Code Crafters",
       });
       author = systemUser;
       console.log("Created system user for academic calendar");

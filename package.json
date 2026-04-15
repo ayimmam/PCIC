@@ -8,6 +8,8 @@
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
     "seed": "npm run seed --prefix server",
+    "migrate:domains": "npm run migrate:domains --prefix server",
+    "test": "npm test --prefix server",
     "build": "npm run build --prefix client"
   }
 }
