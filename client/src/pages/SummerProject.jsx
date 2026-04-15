@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import PageHeader from "@/components/shared/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -33,12 +31,8 @@ import {
 } from "@/components/ui/dialog";
 import FileUpload from "@/components/shared/FileUpload";
 import { toast } from "sonner";
-import { ExternalLink, ClipboardCheck } from "lucide-react";
-
-const uploadSchema = z.object({
-  title: z.string().optional(),
-  notes: z.string().optional(),
-});
+import { ExternalLink, ClipboardCheck, Github, Link2 } from "lucide-react";
+import { isPcicDomain } from "@/lib/pcicDomains";
 
 const statusVariant = { pending: "warning", passed: "success", failed: "destructive" };
 
@@ -48,16 +42,31 @@ function fileHref(fileUrl) {
   return normalized.startsWith("http") ? normalized : `/${normalized}`;
 }
 
+function isValidHttpUrl(value) {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isValidGithubUrl(value) {
+  if (!isValidHttpUrl(value)) return false;
+  const parsed = new URL(value);
+  const host = parsed.hostname.toLowerCase();
+  return host === "github.com" || host.endsWith(".github.com");
+}
+
 export default function SummerProject() {
   const { user, refreshUser, loading: authLoading } = useAuth();
   const isDomainLeader = user?.role === "domain_leader";
   const isMember = user?.role === "member";
-  /** Upload API only allows Batch 1 + non-General domain; Batch 2+ can still view their submission. */
-  const canUpload =
-    isMember &&
-    user?.batch === "batch_1" &&
-    user?.domain &&
-    user.domain !== "General";
+  const isPixelPeepsMember = isMember && user?.domain === "Pixel Peeps";
+  const githubRequired = isMember && !isPixelPeepsMember;
+  /** Upload API only allows Batch 1 + assigned PCIC domain; Batch 2+ can still view their submission. */
+  const canUpload = isMember && user?.batch === "batch_1" && isPcicDomain(user?.domain);
 
   const { data: mine, isLoading: mineLoading } = useMySummerSubmission(isMember);
   const { data: pending = [], isLoading: pendingLoading } = usePendingSummerSubmissions(isDomainLeader);
@@ -78,8 +87,7 @@ export default function SummerProject() {
   const [gradeComment, setGradeComment] = useState("");
 
   const { register, handleSubmit, reset } = useForm({
-    resolver: zodResolver(uploadSchema),
-    defaultValues: { title: "", notes: "" },
+    defaultValues: { title: "", notes: "", githubUrl: "", demoUrl: "" },
   });
 
   const onUpload = async (values) => {
@@ -87,10 +95,28 @@ export default function SummerProject() {
       toast.error("Please attach a PDF (max 10MB)");
       return;
     }
+    const githubUrl = String(values.githubUrl || "").trim();
+    const demoUrl = String(values.demoUrl || "").trim();
+
+    if (githubRequired && !githubUrl) {
+      toast.error("GitHub link is required for your domain.");
+      return;
+    }
+    if (githubUrl && !isValidGithubUrl(githubUrl)) {
+      toast.error("Please enter a valid GitHub link (https://github.com/...)");
+      return;
+    }
+    if (demoUrl && !isValidHttpUrl(demoUrl)) {
+      toast.error("Please enter a valid deployed/relevant link (http:// or https://)");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", file);
     if (values.title) formData.append("title", values.title);
     if (values.notes) formData.append("notes", values.notes);
+    if (githubUrl) formData.append("githubUrl", githubUrl);
+    if (demoUrl) formData.append("demoUrl", demoUrl);
     try {
       await submitProject.mutateAsync(formData);
       toast.success("Summer project submitted");
@@ -173,6 +199,8 @@ export default function SummerProject() {
                 <TableRow>
                   <TableHead>Student</TableHead>
                   <TableHead>Title</TableHead>
+                  <TableHead className="text-center">GitHub</TableHead>
+                  <TableHead className="text-center">Link</TableHead>
                   <TableHead>File</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -185,6 +213,38 @@ export default function SummerProject() {
                       <div className="text-xs text-muted-foreground">{row.student?.email}</div>
                     </TableCell>
                     <TableCell>{row.title || "—"}</TableCell>
+                    <TableCell className="text-center">
+                      {row.githubUrl ? (
+                        <a
+                          href={row.githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md border bg-muted/30 text-foreground hover:bg-muted"
+                          title="Open GitHub repository"
+                          aria-label="Open GitHub repository"
+                        >
+                          <Github className="h-4 w-4" />
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {row.demoUrl ? (
+                        <a
+                          href={row.demoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md border bg-muted/30 text-foreground hover:bg-muted"
+                          title="Open deployed or related link"
+                          aria-label="Open deployed or related link"
+                        >
+                          <Link2 className="h-4 w-4" />
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
                     <TableCell>
                       <a
                         href={fileHref(row.fileUrl)}
@@ -221,10 +281,10 @@ export default function SummerProject() {
               promoted after passing, your record for this cycle is still shown below when available.
             </p>
           ) : null}
-          {!canUpload && user?.batch === "batch_1" && (!user?.domain || user.domain === "General") ? (
+          {!canUpload && user?.batch === "batch_1" && !isPcicDomain(user?.domain) ? (
             <p className="text-sm text-amber-700 dark:text-amber-500">
-              Your profile domain is <strong>General</strong> (or unset). Ask the Membership Coordinator to assign your
-              PCIC domain before you can upload a summer project.
+              Your profile must list a PCIC domain (Code Crafters, Turing Tribe, Cyber Crew, or Pixel Peeps). Ask the
+              Membership Coordinator to set your domain before you can upload a summer project.
             </p>
           ) : null}
           {mineLoading ? (
@@ -245,6 +305,32 @@ export default function SummerProject() {
               {mine.notes ? (
                 <p>
                   <span className="text-muted-foreground">Notes:</span> {mine.notes}
+                </p>
+              ) : null}
+              {mine.githubUrl ? (
+                <p>
+                  <span className="text-muted-foreground">GitHub:</span>{" "}
+                  <a
+                    href={mine.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+                  >
+                    {mine.githubUrl} <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </p>
+              ) : null}
+              {mine.demoUrl ? (
+                <p>
+                  <span className="text-muted-foreground">Deployed/other link:</span>{" "}
+                  <a
+                    href={mine.demoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+                  >
+                    {mine.demoUrl} <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
                 </p>
               ) : null}
               <p>
@@ -272,7 +358,7 @@ export default function SummerProject() {
                 </p>
               ) : null}
               {mine.status === "failed" ? (
-                <p className="text-muted-foreground">You may submit again for this cycle if your Domain Leader allows a resubmission.</p>
+                <p className="text-muted-foreground">You may submit again for this cycle.</p>
               ) : null}
             </div>
           )}
@@ -282,15 +368,33 @@ export default function SummerProject() {
               <p className="text-sm text-muted-foreground">
                 {mine?.status === "failed"
                   ? "Submit a revised PDF for the same review cycle."
-                  : "Upload one PDF (max 10 MB). Your Domain Leader must match your profile domain."}
+                  : "Upload one PDF (max 10 MB)."}
               </p>
               <div className="space-y-2">
                 <Label htmlFor="summer-title">Project title (optional)</Label>
                 <Input id="summer-title" placeholder="e.g. Community inventory app" {...register("title")} />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="summer-github">
+                  GitHub link {githubRequired ? "(required)" : "(optional for Pixel Peeps)"}
+                </Label>
+                <Input
+                  id="summer-github"
+                  placeholder="https://github.com/username/repository"
+                  {...register("githubUrl")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="summer-demo">Deployed/other relevant link (optional)</Label>
+                <Input
+                  id="summer-demo"
+                  placeholder="https://your-app.example.com"
+                  {...register("demoUrl")}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="summer-notes">Notes for reviewer (optional)</Label>
-                <Textarea id="summer-notes" rows={3} placeholder="Stack, repo link in PDF, etc." {...register("notes")} />
+                <Textarea id="summer-notes" rows={3} placeholder="Stack, instructions, context, etc." {...register("notes")} />
               </div>
               <FileUpload
                 label="Summer project (PDF only, max 10MB)"
@@ -299,7 +403,7 @@ export default function SummerProject() {
                 maxSize={10 * 1024 * 1024}
               />
               <Button type="submit" disabled={submitProject.isPending}>
-                {submitProject.isPending ? "Uploading…" : "Submit PDF"}
+                {submitProject.isPending ? "Uploading…" : "Submit Project"}
               </Button>
             </form>
           )}

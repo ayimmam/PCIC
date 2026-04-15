@@ -22,7 +22,7 @@ import {
   LogOut,
   Menu,
   X,
-  Sun,
+  CloudRain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -37,7 +37,7 @@ const navItems = [
   {
     path: "/summer-project",
     label: "Summer project",
-    icon: Sun,
+    icon: CloudRain,
     visible: (u) => u?.role === "domain_leader" || u?.role === "member",
   },
   { path: "/admin", label: "Admin", icon: Shield, roles: ["president", "pm", "mc"] },

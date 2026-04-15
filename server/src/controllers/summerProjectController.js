@@ -2,8 +2,27 @@ import mongoose from "mongoose";
 import SummerProjectSubmission from "../models/SummerProjectSubmission.js";
 import User from "../models/User.js";
 import Decision from "../models/Decision.js";
+import { isPcicDomain } from "../constants/pcicDomains.js";
 
 const activeCycle = () => process.env.SUMMER_PROJECT_CYCLE || "summer-2026";
+
+function parseHttpUrl(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function isGithubUrl(value) {
+  const parsed = parseHttpUrl(value);
+  if (!parsed) return false;
+  const host = parsed.hostname.toLowerCase();
+  return host === "github.com" || host.endsWith(".github.com");
+}
 
 async function logSummerDecision({ title, description, authorId }) {
   try {
@@ -47,6 +66,7 @@ export const getMine = async (req, res) => {
 export const listPendingForGrader = async (req, res) => {
   try {
     const graderDomain = req.user.domain;
+
     const submissions = await SummerProjectSubmission.find({
       status: "pending",
       academicCycle: activeCycle(),
@@ -79,10 +99,10 @@ export const submitSubmission = async (req, res) => {
       return res.status(403).json({ message: "Summer project upload is only for Batch 1 students" });
     }
 
-    if (!member.domain || member.domain === "General") {
+    if (!isPcicDomain(member.domain)) {
       return res.status(400).json({
         message:
-          "Your profile domain is set to General. Ask the Membership Coordinator to assign your PCIC domain before uploading a summer project.",
+          "Your profile must be assigned to a PCIC domain (Code Crafters, Turing Tribe, Cyber Crew, or Pixel Peeps). Ask the Membership Coordinator to update your domain before uploading.",
       });
     }
 
@@ -110,13 +130,32 @@ export const submitSubmission = async (req, res) => {
       return res.status(400).json({ message: "A PDF file is required" });
     }
 
-    const { title = "", notes = "" } = req.body;
+    const { title = "", notes = "", githubUrl = "", demoUrl = "" } = req.body;
+    const trimmedGithubUrl = String(githubUrl).trim();
+    const trimmedDemoUrl = String(demoUrl).trim();
+    const githubRequired = member.domain !== "Pixel Peeps";
+
+    if (githubRequired && !trimmedGithubUrl) {
+      return res.status(400).json({
+        message: "GitHub link is required for this domain. Pixel Peeps members may leave it empty.",
+      });
+    }
+
+    if (trimmedGithubUrl && !isGithubUrl(trimmedGithubUrl)) {
+      return res.status(400).json({ message: "Please provide a valid GitHub link (https://github.com/...)." });
+    }
+
+    if (trimmedDemoUrl && !parseHttpUrl(trimmedDemoUrl)) {
+      return res.status(400).json({ message: "Please provide a valid deployed/relevant link (http:// or https://)." });
+    }
 
     const submission = await SummerProjectSubmission.create({
       student: member._id,
       fileUrl,
       title: String(title).trim(),
       notes: String(notes).trim(),
+      githubUrl: trimmedGithubUrl,
+      demoUrl: trimmedDemoUrl,
       academicCycle: cycle,
       status: "pending",
     });

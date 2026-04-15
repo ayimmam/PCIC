@@ -7,19 +7,7 @@ import EventDetail from "@/components/events/EventDetail";
 import CreateEventForm from "@/components/events/CreateEventForm";
 import RoleGate from "@/components/shared/RoleGate";
 import { useEvents } from "@/hooks/useEvents";
-
-const DOMAINS = [
-  "T&G",
-  "Technical",
-  "Events",
-  "Marketing",
-  "Finance",
-  "General",
-  "Code Crafters",
-  "Turing Tribe",
-  "Cyber Crew",
-  "Pixel Peeps",
-];
+import { PCIC_DOMAINS } from "@/lib/pcicDomains";
 
 export default function Events() {
   const [tab, setTab] = useState("upcoming");
@@ -59,7 +47,7 @@ export default function Events() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All domains</SelectItem>
-                {DOMAINS.map((d) => (
+                {PCIC_DOMAINS.map((d) => (
                   <SelectItem key={d} value={d}>{d}</SelectItem>
                 ))}
               </SelectContent>

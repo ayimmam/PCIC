@@ -6,6 +6,8 @@ const summerProjectSubmissionSchema = new mongoose.Schema(
     fileUrl: { type: String, required: true, trim: true },
     title: { type: String, default: "", trim: true },
     notes: { type: String, default: "", trim: true },
+    githubUrl: { type: String, default: "", trim: true },
+    demoUrl: { type: String, default: "", trim: true },
     academicCycle: { type: String, required: true, trim: true, default: "summer-2026" },
     status: {
       type: String,

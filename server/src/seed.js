@@ -4,19 +4,20 @@ import User from "./models/User.js";
 import Event from "./models/Event.js";
 import Decision from "./models/Decision.js";
 import SummerProjectSubmission from "./models/SummerProjectSubmission.js";
+import { buildDomainStudentUsers } from "./seed/domainStudents.js";
 
 dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/pcic";
 
 const seedUsers = [
-  { name: "Admin President", email: "president@pcic.com", password: "password123", role: "president", batch: "batch_1", domain: "General" },
-  { name: "Vice President", email: "vice.president@pcic.com", password: "password123", role: "vice_president", batch: "batch_1", domain: "General" },
-  { name: "Project Manager", email: "pm@pcic.com", password: "password123", role: "pm", batch: "batch_1", domain: "General" },
-  { name: "Secretary", email: "secretary@pcic.com", password: "password123", role: "secretary", batch: "batch_1", domain: "General" },
-  { name: "Public Relations", email: "pr@pcic.com", password: "password123", role: "pr", batch: "batch_1", domain: "Marketing" },
-  { name: "Event Lead", email: "events.lead@pcic.com", password: "password123", role: "event_organizer", batch: "batch_1", domain: "Events" },
-  { name: "Membership Coordinator", email: "mc@pcic.com", password: "password123", role: "mc", batch: "batch_1", domain: "General" },
+  { name: "Admin President", email: "president@pcic.com", password: "password123", role: "president", batch: "batch_1", domain: "Code Crafters" },
+  { name: "Vice President", email: "vice.president@pcic.com", password: "password123", role: "vice_president", batch: "batch_1", domain: "Turing Tribe" },
+  { name: "Project Manager", email: "pm@pcic.com", password: "password123", role: "pm", batch: "batch_1", domain: "Cyber Crew" },
+  { name: "Secretary", email: "secretary@pcic.com", password: "password123", role: "secretary", batch: "batch_1", domain: "Pixel Peeps" },
+  { name: "Public Relations", email: "pr@pcic.com", password: "password123", role: "pr", batch: "batch_1", domain: "Pixel Peeps" },
+  { name: "Event Lead", email: "events.lead@pcic.com", password: "password123", role: "event_organizer", batch: "batch_1", domain: "Cyber Crew" },
+  { name: "Membership Coordinator", email: "mc@pcic.com", password: "password123", role: "mc", batch: "batch_1", domain: "Code Crafters" },
   {
     name: "Domain Leader — Code Crafters",
     email: "leader.codecrafters@pcic.com",
@@ -49,8 +50,9 @@ const seedUsers = [
     batch: "batch_2",
     domain: "Pixel Peeps",
   },
-  { name: "Abebe Kebede", email: "abebe@pcic.com", password: "password123", role: "member", batch: "batch_2", domain: "Technical" },
-  { name: "Sara Tadesse", email: "sara@pcic.com", password: "password123", role: "member", batch: "batch_1", domain: "Events" },
+  ...buildDomainStudentUsers(),
+  { name: "Abebe Kebede", email: "abebe@pcic.com", password: "password123", role: "member", batch: "batch_2", domain: "Turing Tribe" },
+  { name: "Sara Tadesse", email: "sara@pcic.com", password: "password123", role: "member", batch: "batch_1", domain: "Pixel Peeps" },
   {
     name: "Batch1 Summer Demo",
     email: "summer.batch1@pcic.com",
@@ -59,13 +61,13 @@ const seedUsers = [
     batch: "batch_1",
     domain: "Code Crafters",
   },
-  { name: "Dawit Hailu", email: "dawit@pcic.com", password: "password123", role: "member", batch: "batch_3", domain: "T&G" },
+  { name: "Dawit Hailu", email: "dawit@pcic.com", password: "password123", role: "member", batch: "batch_3", domain: "Turing Tribe" },
 ];
 
 const seedEvents = [
-  { title: "Weekly Tech Session", description: "Hands-on coding workshop", date: new Date(Date.now() + 7 * 86400000), domain: "Technical", capacity: 50 },
-  { title: "T&G Community Meeting", description: "Monthly community gathering", date: new Date(Date.now() + 14 * 86400000), domain: "T&G", capacity: 100 },
-  { title: "Past Workshop: Git Basics", description: "Introduction to Git and GitHub", date: new Date(Date.now() - 7 * 86400000), domain: "Technical", capacity: 30 },
+  { title: "Code Crafters build sprint", description: "Hands-on coding workshop", date: new Date(Date.now() + 7 * 86400000), domain: "Code Crafters", capacity: 50 },
+  { title: "Turing Tribe community sync", description: "Monthly community gathering", date: new Date(Date.now() + 14 * 86400000), domain: "Turing Tribe", capacity: 100 },
+  { title: "Past workshop: Git basics", description: "Introduction to Git and GitHub", date: new Date(Date.now() - 7 * 86400000), domain: "Cyber Crew", capacity: 30 },
 ];
 
 const now = Date.now();
@@ -115,8 +117,9 @@ async function seed() {
     console.log("Cleared existing data");
 
     // Seed users
+    const rosterCount = buildDomainStudentUsers().length;
     const users = await User.create(seedUsers);
-    console.log(`Seeded ${users.length} users`);
+    console.log(`Seeded ${users.length} users (includes ${rosterCount} domain roster students: student.<domain>.{1,2,3}@pcic.com)`);
 
     const president = users.find((u) => u.role === "president");
     const pm = users.find((u) => u.role === "pm");

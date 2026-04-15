@@ -33,11 +33,16 @@ server/   — Node.js + Express.js + Mongoose (ES modules)
 
 ## User Roles (enforced by `roleGuard.js` backend + `RoleGate.jsx` frontend)
 
-- `president` — full access, approve/reject candidates
-- `pm` — manage members, change statuses, create decisions
-- `mc` — change member status, track attendance
-- `domain_leader` — create events for their domain
+- `president`, `vice_president`, `secretary` — executive / org-wide duties per route
+- `pm` (product manager) — manage members, change statuses, create decisions
+- `mc` (membership coordinator) — change member status, track attendance
+- `pr` (public relations), `event_organizer` (event team) — per route
+- `domain_leader` — create events for their **PCIC domain** (see domains below)
 - `member` — view events, check in, view own profile
+
+## PCIC domains (`User.domain` / `Event.domain`)
+
+Only: **Code Crafters**, **Turing Tribe**, **Cyber Crew**, **Pixel Peeps** (not legacy labels like “Technical” or “General”).
 
 ## Key Conventions
 

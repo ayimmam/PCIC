@@ -33,7 +33,7 @@ const summerPdfFilter = (_req, file, cb) => {
   if (ext === ".pdf") {
     cb(null, true);
   } else {
-    cb(new Error("Summer project upload must be a PDF file"), false);
+    cb(new Error("Only .pdf files are accepted for summer project upload"), false);
   }
 };
 
