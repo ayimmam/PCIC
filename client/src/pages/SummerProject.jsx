@@ -35,6 +35,7 @@ import { ExternalLink, ClipboardCheck, Github, Link2 } from "lucide-react";
 import { isPcicDomain } from "@/lib/pcicDomains";
 
 const statusVariant = { pending: "warning", passed: "success", failed: "destructive" };
+const CONFETTI_COLORS = ["#22c55e", "#3b82f6", "#eab308", "#ef4444", "#a855f7", "#14b8a6"];
 
 function fileHref(fileUrl) {
   if (!fileUrl) return "#";
@@ -353,9 +354,28 @@ export default function SummerProject() {
                 <p className="text-muted-foreground">Awaiting review by your Domain Leader.</p>
               ) : null}
               {mine.status === "passed" ? (
-                <p className="text-muted-foreground">
-                  You passed — your batch is now <strong>Batch 2</strong> (you are on track as a Batch 2 learner).
-                </p>
+                <div className="relative overflow-hidden rounded-lg border border-emerald-300/60 bg-emerald-50/60 p-4 dark:border-emerald-700/50 dark:bg-emerald-950/20">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-28">
+                    {Array.from({ length: 28 }).map((_, i) => (
+                      <span
+                        key={`confetti-${i}`}
+                        className="absolute top-0 h-2 w-2 rounded-sm opacity-90"
+                        style={{
+                          left: `${(i * 97) % 100}%`,
+                          backgroundColor: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+                          animation: `summer-confetti-fall ${2.4 + (i % 6) * 0.35}s linear ${(i % 8) * 0.14}s infinite`,
+                          transform: `rotate(${(i * 47) % 360}deg)`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <p className="relative text-center text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">
+                    Congratulations, you passed!
+                  </p>
+                  <p className="relative mt-2 text-center font-semibold text-emerald-900 dark:text-emerald-100">
+                    You passed — your batch is now <strong>Batch 2</strong> (you are on track as a Batch 2 learner).
+                  </p>
+                </div>
               ) : null}
               {mine.status === "failed" ? (
                 <p className="text-muted-foreground">You may submit again for this cycle.</p>
@@ -451,6 +471,13 @@ export default function SummerProject() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <style>{`
+        @keyframes summer-confetti-fall {
+          0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
+          10% { opacity: 1; }
+          100% { transform: translateY(120px) rotate(540deg); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
