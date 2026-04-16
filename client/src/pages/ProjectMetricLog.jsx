@@ -23,8 +23,8 @@ export default function ProjectMetricLog() {
   const [selectedId, setSelectedId] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
-  // Auto-select first project when loaded
-  const activeId = selectedId || projects[0]?._id || "";
+  const isAllSelected = selectedId === "all";
+  const activeId = isAllSelected ? "" : selectedId || projects[0]?._id || "";
   const { data: project } = useProject(activeId);
 
   return (
@@ -34,7 +34,7 @@ export default function ProjectMetricLog() {
         subtitle="Track project progress, artifacts, and team activity"
         action={
           <div className="flex items-center gap-2">
-            {project?.repoUrl && (
+            {!isAllSelected && project?.repoUrl && (
               <Button variant="outline" asChild>
                 <a href={project.repoUrl} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" /> Repo
@@ -65,11 +65,12 @@ export default function ProjectMetricLog() {
         <div className="flex flex-col gap-4 lg:flex-row">
           {/* Main content */}
           <div className="flex-1 space-y-4">
-            <Select value={activeId} onValueChange={setSelectedId}>
+            <Select value={isAllSelected ? "all" : activeId} onValueChange={setSelectedId}>
               <SelectTrigger className="w-full sm:w-72">
                 <SelectValue placeholder="Select a project" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Select All</SelectItem>
                 {projects.map((p) => (
                   <SelectItem key={p._id} value={p._id}>
                     {p.title}
@@ -78,7 +79,27 @@ export default function ProjectMetricLog() {
               </SelectContent>
             </Select>
 
-            {project && (
+            {isAllSelected ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">All projects</p>
+                {projects.map((projectItem) => (
+                  <button
+                    key={projectItem._id}
+                    type="button"
+                    onClick={() => setSelectedId(projectItem._id)}
+                    className="flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors hover:bg-accent"
+                  >
+                    <div>
+                      <p className="font-medium">{projectItem.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {projectItem.members?.length || 0} members · deadline {new Date(projectItem.deadline).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Open</span>
+                  </button>
+                ))}
+              </div>
+            ) : project && (
               <Tabs defaultValue="overview" className="space-y-4">
                 <TabsList className="flex-wrap">
                   <TabsTrigger value="overview" className="gap-1.5">
@@ -118,7 +139,7 @@ export default function ProjectMetricLog() {
           </div>
 
           {/* Right sidebar — Todo list */}
-          {project && (
+          {!isAllSelected && project && (
             <div className="w-full lg:w-72 xl:w-80">
               <ProjectTodoSidebar project={project} />
             </div>
