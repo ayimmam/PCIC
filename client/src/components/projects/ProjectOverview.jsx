@@ -52,10 +52,15 @@ export default function ProjectOverview({ project }) {
   const isPm = user?.role === "pm";
   const daysLeft = differenceInDays(new Date(project.deadline), new Date());
   const teamMembers = project.members || [];
+  const assignedIds = new Set([
+    ...teamMembers.map((teamMember) => (teamMember._id || teamMember)?.toString()).filter(Boolean),
+    (project.projectLead?._id || project.projectLead)?.toString(),
+  ].filter(Boolean));
+
   const allowedCandidates = allMembers.filter(
     (member) =>
       (member.batch === "batch_2" || member.batch === "batch_3") &&
-      !teamMembers.some((teamMember) => (teamMember._id || teamMember).toString() === member._id)
+      !assignedIds.has(member._id?.toString())
   );
   const filteredCandidates = allowedCandidates.filter((member) => {
     const query = memberSearch.trim().toLowerCase();
