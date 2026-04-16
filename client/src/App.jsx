@@ -11,6 +11,7 @@ import Members from "@/pages/Members";
 import Career from "@/pages/Career";
 import Admin from "@/pages/Admin";
 import Reports from "@/pages/Reports";
+import ProjectMetricLog from "@/pages/ProjectMetricLog";
 import SummerProject from "@/pages/SummerProject";
 import {
   LayoutDashboard,
@@ -19,6 +20,7 @@ import {
   Briefcase,
   Shield,
   FileText,
+  FolderKanban,
   LogOut,
   Menu,
   X,
@@ -34,6 +36,7 @@ const navItems = [
   { path: "/members", label: "Members", icon: Users },
   { path: "/reports", label: "Decisions", icon: FileText },
   { path: "/career", label: "Career", icon: Briefcase },
+  { path: "/projects", label: "Projects", icon: FolderKanban, batches: ["batch_2", "batch_3"], roles: ["pm"] },
   {
     path: "/summer-project",
     label: "Summer project",
@@ -78,7 +81,9 @@ function Sidebar({ user, onLogout }) {
         <nav className="flex-1 space-y-1 p-4">
           {navItems.map((item) => {
             if (item.visible && !item.visible(user)) return null;
-            if (item.roles && !item.roles.includes(user?.role)) return null;
+            const roleOk = item.roles && item.roles.includes(user?.role);
+            const batchOk = item.batches && item.batches.includes(user?.batch);
+            if ((item.roles || item.batches) && !roleOk && !batchOk) return null;
             const isActive = location.pathname === item.path;
             return (
               <Link
@@ -131,6 +136,7 @@ function AppLayout() {
           <Route path="/members" element={<Members />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/career" element={<Career />} />
+          <Route path="/projects" element={<ProjectMetricLog />} />
           <Route path="/summer-project" element={<SummerProject />} />
           <Route path="/admin" element={
             <RoleGate allowedRoles={["president", "pm", "mc"]} fallback={<Navigate to="/" />}>
