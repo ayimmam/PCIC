@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format, differenceInDays } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,8 +39,9 @@ export default function ProjectOverview({ project }) {
   const [deadline, setDeadline] = useState(
     project?.deadline ? new Date(project.deadline).toISOString().slice(0, 10) : ""
   );
-  const [newMemberId, setNewMemberId] = useState("");
+  const [selectedMemberIds, setSelectedMemberIds] = useState([]);
   const [memberSearch, setMemberSearch] = useState("");
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [memberForm, setMemberForm] = useState({ name: "", email: "" });
 
   const allMembers = Array.isArray(memberData) ? memberData : memberData?.members || [];
@@ -71,7 +72,19 @@ export default function ProjectOverview({ project }) {
     );
     })
     : [];
-  const selectedCandidate = allowedCandidates.find((member) => member._id === newMemberId);
+  const selectedCandidates = allowedCandidates.filter((member) =>
+    selectedMemberIds.includes(member._id)
+  );
+
+  useEffect(() => {
+    if (!searchQuery || filteredCandidates.length === 0) {
+      setActiveSuggestionIndex(-1);
+      return;
+    }
+    if (activeSuggestionIndex >= filteredCandidates.length) {
+      setActiveSuggestionIndex(filteredCandidates.length - 1);
+    }
+  }, [searchQuery, filteredCandidates, activeSuggestionIndex]);
 
   const syncOverviewState = () => {
     setDescription(project.description || "");
@@ -96,21 +109,63 @@ export default function ProjectOverview({ project }) {
   };
 
   const handleAddMember = () => {
-    if (!newMemberId) return;
+    if (!selectedMemberIds.length) return;
+    const nextMemberIds = [
+      ...new Set([
+        ...teamMembers.map((member) => (member._id || member).toString()),
+        ...selectedMemberIds,
+      ]),
+    ];
+
     updateProject.mutate(
       {
         id: project._id,
-        members: [...teamMembers.map((m) => m._id || m), newMemberId],
+        members: nextMemberIds,
       },
       {
         onSuccess: () => {
-          toast.success("Member added to project");
-          setNewMemberId("");
+          toast.success("Selected members added to project");
+          setSelectedMemberIds([]);
           setMemberSearch("");
+          setActiveSuggestionIndex(-1);
         },
         onError: (err) => toast.error(err.response?.data?.message || "Failed to add member"),
       }
     );
+  };
+
+  const toggleSelectedMember = (memberId) => {
+    setSelectedMemberIds((prev) =>
+      prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
+    );
+  };
+
+  const handleSearchKeyDown = (event) => {
+    if (!filteredCandidates.length) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) => {
+        if (prev < 0) return 0;
+        return prev + 1 >= filteredCandidates.length ? 0 : prev + 1;
+      });
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) => {
+        if (prev < 0) return filteredCandidates.length - 1;
+        return prev - 1 < 0 ? filteredCandidates.length - 1 : prev - 1;
+      });
+    }
+
+    if (event.key === "Enter" && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      const member = filteredCandidates[activeSuggestionIndex];
+      if (member?._id) {
+        toggleSelectedMember(member._id);
+      }
+    }
   };
 
   const handleRemoveMember = (memberId) => {
@@ -364,6 +419,7 @@ export default function ProjectOverview({ project }) {
                 <Input
                   value={memberSearch}
                   onChange={(e) => setMemberSearch(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   placeholder="Search batch 2 & 3 members by name or email"
                 />
 
@@ -377,7 +433,9 @@ export default function ProjectOverview({ project }) {
                       Loading members...
                     </p>
                   ) : filteredCandidates.slice(0, 10).map((member) => {
-                    const isSelected = newMemberId === member._id;
+                    const isSelected = selectedMemberIds.includes(member._id);
+                    const candidateIndex = filteredCandidates.findIndex((item) => item._id === member._id);
+                    const isActive = activeSuggestionIndex === candidateIndex;
                     return (
                       <button
                         key={member._id}
@@ -385,9 +443,11 @@ export default function ProjectOverview({ project }) {
                         className={`w-full rounded-md border px-3 py-2 text-left text-sm transition-colors ${
                           isSelected
                             ? "border-primary bg-primary/10"
-                            : "border-border bg-background hover:bg-accent"
+                            : isActive
+                              ? "border-ring bg-accent"
+                              : "border-border bg-background hover:bg-accent"
                         }`}
-                        onClick={() => setNewMemberId(member._id)}
+                        onClick={() => toggleSelectedMember(member._id)}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <p className="truncate font-medium text-foreground">{member.name}</p>
@@ -406,20 +466,33 @@ export default function ProjectOverview({ project }) {
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <p className="text-xs text-muted-foreground">
-                    {selectedCandidate
-                      ? `Selected: ${selectedCandidate.name} (${selectedCandidate.email})`
-                      : "Select a member from the search results"}
+                    {selectedCandidates.length
+                      ? `Selected ${selectedCandidates.length} member${selectedCandidates.length > 1 ? "s" : ""}`
+                      : "Select one or more members from the search results"}
                   </p>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleAddMember}
-                    disabled={!newMemberId || updateProject.isPending}
+                    disabled={!selectedMemberIds.length || updateProject.isPending}
                     className="sm:ml-auto"
                   >
-                    <UserPlus className="mr-1 h-4 w-4" /> Add
+                    <UserPlus className="mr-1 h-4 w-4" /> Add Selected
                   </Button>
                 </div>
+
+                {selectedCandidates.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {selectedCandidates.map((member) => (
+                      <Badge key={member._id} variant="secondary" className="gap-1">
+                        {member.name}
+                        <button type="button" onClick={() => toggleSelectedMember(member._id)}>
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
