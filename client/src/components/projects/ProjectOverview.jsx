@@ -29,7 +29,7 @@ export default function ProjectOverview({ project }) {
   const setRepoUrl = useSetRepoUrl();
   const updateProject = useUpdateProject();
   const updateMemberProfile = useUpdateMemberProfile();
-  const { data: memberData } = useMembers({}, { enabled: user?.role === "pm" });
+  const { data: memberData, isLoading: isMembersLoading } = useMembers({}, { enabled: user?.role === "pm" });
 
   const [editingRepo, setEditingRepo] = useState(false);
   const [editingOverview, setEditingOverview] = useState(false);
@@ -43,7 +43,7 @@ export default function ProjectOverview({ project }) {
   const [memberSearch, setMemberSearch] = useState("");
   const [memberForm, setMemberForm] = useState({ name: "", email: "" });
 
-  const allMembers = memberData?.members || [];
+  const allMembers = Array.isArray(memberData) ? memberData : memberData?.members || [];
 
   if (!project) return null;
 
@@ -361,22 +361,34 @@ export default function ProjectOverview({ project }) {
                   placeholder="Search batch 2 & 3 members by name or email"
                 />
 
-                <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2">
-                  {filteredCandidates.slice(0, 10).map((member) => (
-                    <button
-                      key={member._id}
-                      type="button"
-                      className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
-                      onClick={() => setNewMemberId(member._id)}
-                    >
-                      <span className="truncate">
-                        {member.name} <span className="text-muted-foreground">({member.email})</span>
-                      </span>
-                      <span className="ml-2 text-xs text-muted-foreground">{member.batch}</span>
-                    </button>
-                  ))}
-                  {filteredCandidates.length === 0 && (
-                    <p className="px-2 py-1 text-xs text-muted-foreground">
+                <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border bg-muted/30 p-2">
+                  {isMembersLoading ? (
+                    <p className="rounded-md border bg-background px-2 py-2 text-sm text-muted-foreground">
+                      Loading members...
+                    </p>
+                  ) : filteredCandidates.slice(0, 10).map((member) => {
+                    const isSelected = newMemberId === member._id;
+                    return (
+                      <button
+                        key={member._id}
+                        type="button"
+                        className={`w-full rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                          isSelected
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-background hover:bg-accent"
+                        }`}
+                        onClick={() => setNewMemberId(member._id)}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate font-medium text-foreground">{member.name}</p>
+                          <span className="shrink-0 text-xs text-muted-foreground">{member.batch}</span>
+                        </div>
+                        <p className="truncate text-xs text-muted-foreground">{member.email}</p>
+                      </button>
+                    );
+                  })}
+                  {!isMembersLoading && filteredCandidates.length === 0 && (
+                    <p className="rounded-md border bg-background px-2 py-2 text-sm text-muted-foreground">
                       No batch 2/3 member found for this search.
                     </p>
                   )}
