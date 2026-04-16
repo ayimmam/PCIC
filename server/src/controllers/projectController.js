@@ -3,6 +3,7 @@ import Project from "../models/Project.js";
 import WeeklyReport from "../models/WeeklyReport.js";
 import ProjectResource from "../models/ProjectResource.js";
 import ProjectIssue from "../models/ProjectIssue.js";
+import User from "../models/User.js";
 
 /* ── helpers ─────────────────────────────────────────── */
 
@@ -20,6 +21,29 @@ const populateProject = [
   { path: "todos.assignee", select: "name email" },
   { path: "todos.createdBy", select: "name" },
 ];
+
+const allowedProjectBatches = ["batch_2", "batch_3"];
+
+async function validateProjectTeamAssignments(memberIds = [], projectLead) {
+  const allIds = [
+    ...new Set([
+      ...memberIds.filter(Boolean).map((id) => id.toString()),
+      ...(projectLead ? [projectLead.toString()] : []),
+    ]),
+  ];
+
+  if (allIds.length === 0) return;
+
+  const users = await User.find({ _id: { $in: allIds } }).select("_id batch name").lean();
+  if (users.length !== allIds.length) {
+    throw new Error("One or more selected members were not found");
+  }
+
+  const invalid = users.find((user) => !allowedProjectBatches.includes(user.batch));
+  if (invalid) {
+    throw new Error("Only batch 2 and batch 3 members can be assigned to projects");
+  }
+}
 
 /* ── projects CRUD ───────────────────────────────────── */
 
@@ -51,6 +75,9 @@ export const getProjectById = async (req, res) => {
 export const createProject = async (req, res) => {
   try {
     const { title, description, deadline, projectLead, members, todos } = req.body;
+    const memberIds = Array.isArray(members) ? members.filter(Boolean) : [];
+    await validateProjectTeamAssignments(memberIds, projectLead);
+
     const wbsTodos = Array.isArray(todos)
       ? todos.map((t) => ({
           task: t.task,
@@ -65,7 +92,7 @@ export const createProject = async (req, res) => {
       description,
       deadline: new Date(deadline),
       projectLead: projectLead || null,
-      members: Array.isArray(members) ? members.filter(Boolean) : [],
+      members: memberIds,
       createdBy: req.user._id,
       todos: wbsTodos,
     });
@@ -83,18 +110,28 @@ export const updateProject = async (req, res) => {
     if (!project) return res.status(404).json({ message: "Project not found" });
 
     const { title, description, deadline, projectLead, members, status } = req.body;
+    const nextMembers = Array.isArray(members) ? members.filter(Boolean) : project.members;
+    const nextLead = projectLead !== undefined ? projectLead || null : project.projectLead;
+
+    if (Array.isArray(members) || projectLead !== undefined) {
+      await validateProjectTeamAssignments(nextMembers, nextLead);
+    }
+
     if (title != null) project.title = title;
     if (description != null) project.description = description;
     if (deadline != null) project.deadline = new Date(deadline);
     if (projectLead !== undefined) project.projectLead = projectLead || null;
-    if (Array.isArray(members)) project.members = members.filter(Boolean);
+    if (Array.isArray(members)) project.members = nextMembers;
     if (status) project.status = status;
 
     await project.save();
     const populated = await project.populate(populateProject);
     res.json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    const isValidationError =
+      error.message === "One or more selected members were not found" ||
+      error.message === "Only batch 2 and batch 3 members can be assigned to projects";
+    res.status(isValidationError ? 400 : 500).json({ message: error.message });
   }
 };
 

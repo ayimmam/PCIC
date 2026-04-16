@@ -52,3 +52,17 @@ export function useUpdateMemberBatch() {
     },
   });
 }
+
+export function useUpdateMemberProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name, email }) => {
+      const { data } = await api.put(`/members/${id}`, { name, email });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}

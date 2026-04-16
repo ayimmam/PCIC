@@ -83,3 +83,29 @@ export const updateMemberBatch = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const updateMemberProfile = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    if (name == null && email == null) {
+      return res.status(400).json({ message: "At least one field is required" });
+    }
+
+    const member = await User.findById(req.params.id);
+    if (!member) return res.status(404).json({ message: "Member not found" });
+
+    if (name != null) member.name = String(name).trim();
+    if (email != null) member.email = String(email).trim().toLowerCase();
+
+    await member.save();
+
+    const { password: _, ...memberData } = member.toObject();
+    res.json(memberData);
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
