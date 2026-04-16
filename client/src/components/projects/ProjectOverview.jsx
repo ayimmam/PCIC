@@ -62,14 +62,15 @@ export default function ProjectOverview({ project }) {
       (member.batch === "batch_2" || member.batch === "batch_3") &&
       !assignedIds.has(member._id?.toString())
   );
-  const filteredCandidates = allowedCandidates.filter((member) => {
-    const query = memberSearch.trim().toLowerCase();
-    if (!query) return true;
+  const searchQuery = memberSearch.trim().toLowerCase();
+  const filteredCandidates = searchQuery
+    ? allowedCandidates.filter((member) => {
     return (
-      member.name?.toLowerCase().includes(query) ||
-      member.email?.toLowerCase().includes(query)
+      member.name?.toLowerCase().includes(searchQuery) ||
+      member.email?.toLowerCase().includes(searchQuery)
     );
-  });
+    })
+    : [];
   const selectedCandidate = allowedCandidates.find((member) => member._id === newMemberId);
 
   const syncOverviewState = () => {
@@ -367,7 +368,11 @@ export default function ProjectOverview({ project }) {
                 />
 
                 <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border bg-muted/30 p-2">
-                  {isMembersLoading ? (
+                  {!searchQuery ? (
+                    <p className="rounded-md border bg-background px-2 py-2 text-sm text-muted-foreground">
+                      Start typing to see member suggestions.
+                    </p>
+                  ) : isMembersLoading ? (
                     <p className="rounded-md border bg-background px-2 py-2 text-sm text-muted-foreground">
                       Loading members...
                     </p>
@@ -392,7 +397,7 @@ export default function ProjectOverview({ project }) {
                       </button>
                     );
                   })}
-                  {!isMembersLoading && filteredCandidates.length === 0 && (
+                  {searchQuery && !isMembersLoading && filteredCandidates.length === 0 && (
                     <p className="rounded-md border bg-background px-2 py-2 text-sm text-muted-foreground">
                       No batch 2/3 member found for this search.
                     </p>
