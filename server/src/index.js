@@ -13,6 +13,7 @@ import decisionRoutes from "./routes/decisions.js";
 import strikeRoutes from "./routes/strikes.js";
 import candidateRoutes from "./routes/candidates.js";
 import projectRoutes from "./routes/projects.js";
+import summerProjectRoutes from "./routes/summer-projects.js";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use("/api/decisions", decisionRoutes);
 app.use("/api/strikes", strikeRoutes);
 app.use("/api/candidates", candidateRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/summer-projects", summerProjectRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });

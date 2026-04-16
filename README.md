@@ -54,6 +54,23 @@ cd server
 npm run seed
 ```
 
+If you **keep an existing database** (not a full re-seed) after pulling changes that narrowed `User.domain` / `Event.domain` to the four PCIC domains, run once:
+
+```bash
+cd server
+npm run migrate:domains
+```
+
+After seeding (or migrating), run tests from `server/` (uses `server/.env` for `MONGODB_URI`):
+
+```bash
+cd server
+npm test
+```
+
+- **Unit tests** (roster shape / uniqueness) always run.
+- **DB checks** are skipped unless roster users exist (run `npm run seed` first so emails like `student.code-crafters.1@pcic.com` are present).
+
 This creates test accounts you can log in with:
 
 | Role | Email | Password |
@@ -70,6 +87,7 @@ This creates test accounts you can log in with:
 | Domain Leader (Cyber Crew) | leader.cybercrew@pcic.com | password123 |
 | Domain Leader (Pixel Peeps) | leader.pixelpeeps@pcic.com | password123 |
 | Member | abebe@pcic.com | password123 |
+| Batch 1 summer demo (pending submission) | summer.batch1@pcic.com | password123 |
 
 ### 4. Run
 
@@ -106,6 +124,7 @@ server/                         Express backend
   src/routes/                   API route definitions
   src/utils/                    Email + file upload helpers
   src/seed.js                   Database seeder
+  src/migrate-legacy-domains.js         One-shot legacy domain labels → PCIC domains
 ```
 
 ## Features (Phase 2 MVP)
@@ -114,6 +133,7 @@ server/                         Express backend
 - **Decision Repository** (F-012) — Log and track executive decisions with status timeline
 - **Strike System** (F-006) — Search members, assign disciplinary strikes
 - **Accelerated Entry** (F-004) — Candidate portfolio upload, president approval
+- **Summer project (Batch 1)** — Members upload a PDF; Domain Leaders in the same **domain** pass/fail; pass promotes the student to **Batch 2**. Domains are only: Code Crafters, Turing Tribe, Cyber Crew, Pixel Peeps.
 - **Member Management** — Filter, view profiles, change status (triggers email)
 
 ## API Endpoints
@@ -133,6 +153,10 @@ server/                         Express backend
 | GET | `/api/strikes/member/:id` | Member strike history |
 | GET/POST | `/api/candidates` | List / submit application |
 | PUT | `/api/candidates/:id/approve` | Approve candidate |
+| GET | `/api/summer-projects/mine` | Current user’s summer submission for the active cycle (latest) |
+| GET | `/api/summer-projects/pending` | Pending submissions in the Domain Leader’s domain |
+| POST | `/api/summer-projects` | Batch 1 `member` uploads PDF (`multipart` field `file`) |
+| PUT | `/api/summer-projects/:id/grade` | Domain Leader body `{ verdict: "pass"\|"fail", comment? }` — pass sets student to `batch_2` |
 
 ## For Contributors
 

@@ -41,7 +41,7 @@ server/src/
   config/db.js              — MongoDB connection
   middleware/auth.js         — JWT verification
   middleware/roleGuard.js    — Role-based access control
-  models/                   — Mongoose schemas (User, Event, Decision, Strike, Candidate)
+  models/                   — Mongoose schemas (User, Event, Decision, Strike, Candidate, SummerProjectSubmission)
   controllers/              — Business logic
   routes/                   — Route definitions
   utils/email.js            — Nodemailer helpers
@@ -50,10 +50,16 @@ server/src/
 
 ## User Roles
 
-`president` > `pm` > `mc` > `domain_leader` > `member`
+Stored `role` values map to community offices as follows: **president**, **vice_president** (`vice_president`), **secretary**, **product manager** (`pm`), **membership coordinator** (`mc`), **event team** (`event_organizer`), **public relations** (`pr`), **domain_leader**, **member**.
+
+Hierarchy for guards is feature-specific (see `roleGuard.js`); it is not a single linear chain across all roles.
 
 - Backend: `roleGuard("president", "pm")` middleware
 - Frontend: `<RoleGate allowedRoles={["president", "pm"]}>` component
+
+## PCIC domains (`User.domain` / `Event.domain`)
+
+Only the four domains: **Code Crafters**, **Turing Tribe**, **Cyber Crew**, **Pixel Peeps**. Leadership accounts still use one of these values for the required `domain` field (see `server/src/constants/pcicDomains.js` and `client/src/lib/pcicDomains.js`).
 
 ## Adding a New Feature
 
@@ -67,6 +73,7 @@ server/src/
 
 ## Seed Data & Academic Calendar
 
+- **Existing DBs** with pre–four-domain `domain` strings: run `npm run migrate:domains` from `server/` (or repo root `npm run migrate:domains`) before relying on members/events.
 - **Dummy/test data** is created via `server/src/seed.js` (script: `npm run seed` in the `server/` folder).
 - **Academic calendar data** for Hawassa University is seeded via `server/src/seed-academic-calendar.js` (script: `npm run seed:academic-calendar` in the `server/` folder).
 - Academic calendar decisions are tagged with the marker `[Academic Calendar]` in the `description` field and **must not be deleted** when cleaning up dummy/test data.
