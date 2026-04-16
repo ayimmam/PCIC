@@ -40,6 +40,7 @@ export default function ProjectOverview({ project }) {
     project?.deadline ? new Date(project.deadline).toISOString().slice(0, 10) : ""
   );
   const [newMemberId, setNewMemberId] = useState("");
+  const [memberSearch, setMemberSearch] = useState("");
   const [memberForm, setMemberForm] = useState({ name: "", email: "" });
 
   const allMembers = memberData?.members || [];
@@ -56,6 +57,15 @@ export default function ProjectOverview({ project }) {
       (member.batch === "batch_2" || member.batch === "batch_3") &&
       !teamMembers.some((teamMember) => (teamMember._id || teamMember).toString() === member._id)
   );
+  const filteredCandidates = allowedCandidates.filter((member) => {
+    const query = memberSearch.trim().toLowerCase();
+    if (!query) return true;
+    return (
+      member.name?.toLowerCase().includes(query) ||
+      member.email?.toLowerCase().includes(query)
+    );
+  });
+  const selectedCandidate = allowedCandidates.find((member) => member._id === newMemberId);
 
   const syncOverviewState = () => {
     setDescription(project.description || "");
@@ -90,6 +100,7 @@ export default function ProjectOverview({ project }) {
         onSuccess: () => {
           toast.success("Member added to project");
           setNewMemberId("");
+          setMemberSearch("");
         },
         onError: (err) => toast.error(err.response?.data?.message || "Failed to add member"),
       }
@@ -343,27 +354,50 @@ export default function ProjectOverview({ project }) {
               <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Add Member (Batch 2 & Batch 3 only)
               </p>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <select
-                  value={newMemberId}
-                  onChange={(e) => setNewMemberId(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                >
-                  <option value="">Select member...</option>
-                  {allowedCandidates.map((member) => (
-                    <option key={member._id} value={member._id}>
-                      {member.name} ({member.email})
-                    </option>
+              <div className="space-y-2">
+                <Input
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  placeholder="Search batch 2 & 3 members by name or email"
+                />
+
+                <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2">
+                  {filteredCandidates.slice(0, 10).map((member) => (
+                    <button
+                      key={member._id}
+                      type="button"
+                      className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
+                      onClick={() => setNewMemberId(member._id)}
+                    >
+                      <span className="truncate">
+                        {member.name} <span className="text-muted-foreground">({member.email})</span>
+                      </span>
+                      <span className="ml-2 text-xs text-muted-foreground">{member.batch}</span>
+                    </button>
                   ))}
-                </select>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddMember}
-                  disabled={!newMemberId || updateProject.isPending}
-                >
-                  <UserPlus className="mr-1 h-4 w-4" /> Add
-                </Button>
+                  {filteredCandidates.length === 0 && (
+                    <p className="px-2 py-1 text-xs text-muted-foreground">
+                      No batch 2/3 member found for this search.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <p className="text-xs text-muted-foreground">
+                    {selectedCandidate
+                      ? `Selected: ${selectedCandidate.name} (${selectedCandidate.email})`
+                      : "Select a member from the search results"}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddMember}
+                    disabled={!newMemberId || updateProject.isPending}
+                    className="sm:ml-auto"
+                  >
+                    <UserPlus className="mr-1 h-4 w-4" /> Add
+                  </Button>
+                </div>
               </div>
             </div>
           )}
