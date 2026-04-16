@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import PageHeader from "@/components/shared/PageHeader";
 import RoleGate from "@/components/shared/RoleGate";
 import ProjectOverview from "@/components/projects/ProjectOverview";
@@ -11,6 +11,7 @@ import CreateProjectDialog from "@/components/projects/CreateProjectDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, ExternalLink, BarChart3, FileText, BookOpen, MessageCircle, LayoutDashboard } from "lucide-react";
 import { useProjects, useProject } from "@/hooks/useProjects";
@@ -21,10 +22,30 @@ export default function ProjectMetricLog() {
   const isPm = user?.role === "pm";
   const { data: projects = [], isLoading } = useProjects();
   const [selectedId, setSelectedId] = useState("");
+  const [projectSearch, setProjectSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
+  const sortedProjects = useMemo(() => {
+    return [...projects].sort((a, b) => {
+      const aTime = new Date(a.createdAt || a.deadline || 0).getTime();
+      const bTime = new Date(b.createdAt || b.deadline || 0).getTime();
+      if (aTime !== bTime) return aTime - bTime;
+      return (a.title || "").localeCompare(b.title || "");
+    });
+  }, [projects]);
+
+  const searchQuery = projectSearch.trim().toLowerCase();
+  const filteredProjects = useMemo(() => {
+    if (!searchQuery) return sortedProjects;
+    return sortedProjects.filter((projectItem) => {
+      const title = projectItem.title?.toLowerCase() || "";
+      const description = projectItem.description?.toLowerCase() || "";
+      return title.includes(searchQuery) || description.includes(searchQuery);
+    });
+  }, [sortedProjects, searchQuery]);
+
   const isAllSelected = selectedId === "all";
-  const activeId = isAllSelected ? "" : selectedId || projects[0]?._id || "";
+  const activeId = isAllSelected ? "" : selectedId || filteredProjects[0]?._id || sortedProjects[0]?._id || "";
   const { data: project } = useProject(activeId);
 
   return (
@@ -71,7 +92,7 @@ export default function ProjectMetricLog() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Select All</SelectItem>
-                {projects.map((p) => (
+                {filteredProjects.map((p) => (
                   <SelectItem key={p._id} value={p._id}>
                     {p.title}
                   </SelectItem>
@@ -79,10 +100,17 @@ export default function ProjectMetricLog() {
               </SelectContent>
             </Select>
 
+            <Input
+              value={projectSearch}
+              onChange={(event) => setProjectSearch(event.target.value)}
+              placeholder="Filter projects by title or description"
+              className="w-full sm:w-72"
+            />
+
             {isAllSelected ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">All projects</p>
-                {projects.map((projectItem) => (
+                {filteredProjects.map((projectItem) => (
                   <button
                     key={projectItem._id}
                     type="button"
@@ -98,6 +126,11 @@ export default function ProjectMetricLog() {
                     <span className="text-xs text-muted-foreground">Open</span>
                   </button>
                 ))}
+                {filteredProjects.length === 0 && (
+                  <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                    No projects match this filter.
+                  </p>
+                )}
               </div>
             ) : project && (
               <Tabs defaultValue="overview" className="space-y-4">
