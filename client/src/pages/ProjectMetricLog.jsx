@@ -100,12 +100,14 @@ export default function ProjectMetricLog() {
               </SelectContent>
             </Select>
 
-            <Input
-              value={projectSearch}
-              onChange={(event) => setProjectSearch(event.target.value)}
-              placeholder="Filter projects by title or description"
-              className="w-full sm:w-72"
-            />
+            {isAllSelected && (
+              <Input
+                value={projectSearch}
+                onChange={(event) => setProjectSearch(event.target.value)}
+                placeholder="Filter projects by title or description"
+                className="w-full sm:w-72"
+              />
+            )}
 
             {isAllSelected ? (
               <div className="space-y-3">
