@@ -8,6 +8,7 @@ import WeeklyReport from "./models/WeeklyReport.js";
 import ProjectResource from "./models/ProjectResource.js";
 import ProjectIssue from "./models/ProjectIssue.js";
 import SummerProjectSubmission from "./models/SummerProjectSubmission.js";
+import LeadershipReport from "./models/LeadershipReport.js";
 import { buildDomainStudentUsers } from "./seed/domainStudents.js";
 
 dotenv.config();
@@ -122,6 +123,7 @@ async function seed() {
     await WeeklyReport.deleteMany({});
     await ProjectResource.deleteMany({});
     await ProjectIssue.deleteMany({});
+    await LeadershipReport.deleteMany({});
     console.log("Cleared existing data");
 
     // Seed users
@@ -161,6 +163,7 @@ async function seed() {
     const dawit = users.find((u) => u.email === "dawit@pcic.com");
     const dlCode = users.find((u) => u.email === "leader.codecrafters@pcic.com");
     const dlTuring = users.find((u) => u.email === "leader.turingtribe@pcic.com");
+    const dlCyber = users.find((u) => u.email === "leader.cybercrew@pcic.com");
 
     const projectMembers = [dlCode._id, dlTuring._id, abebe._id, dawit._id];
 
@@ -243,7 +246,47 @@ async function seed() {
       },
     ]);
 
-    console.log(`Seeded 2 projects with todos, reports, resources, and issues`);
+    const currentYear = new Date().getUTCFullYear();
+    await LeadershipReport.create([
+      {
+        domainLeader: dlCode._id,
+        domain: dlCode.domain,
+        semester: `${currentYear}-S1`,
+        reportTitle: "Code Crafters Semester Report",
+        description: "Delivered weekly summaries, resolved event bottlenecks, and tracked active members.",
+        fileUrl: "uploads/seed-leadership-code-crafters.pdf",
+        notes: "All weekly reports submitted on time.",
+        submittedAt: new Date(Date.UTC(currentYear, 2, 25)),
+        version: 1,
+        isLatest: true,
+      },
+      {
+        domainLeader: dlTuring._id,
+        domain: dlTuring.domain,
+        semester: `${currentYear}-S1`,
+        reportTitle: "Turing Tribe Semester Report",
+        description: "Completed roadmap checkpoints and maintained documentation consistency.",
+        fileUrl: "uploads/seed-leadership-turing-tribe.pdf",
+        notes: "Submitted after deadline due to exam schedule overlap.",
+        submittedAt: new Date(Date.UTC(currentYear, 4, 4)),
+        version: 1,
+        isLatest: true,
+      },
+      {
+        domainLeader: dlCyber._id,
+        domain: dlCyber.domain,
+        semester: `${currentYear}-S1`,
+        reportTitle: "Cyber Crew Semester Report",
+        description: "Published technical updates and coordinated knowledge-sharing sessions.",
+        fileUrl: "uploads/seed-leadership-cyber-crew.pdf",
+        notes: "Initial version.",
+        submittedAt: new Date(Date.UTC(currentYear, 1, 18)),
+        version: 1,
+        isLatest: true,
+      },
+    ]);
+
+    console.log(`Seeded 2 projects with todos, reports, resources, issues, and leadership compliance samples`);
 
     const summerDemo = users.find((u) => u.email === "summer.batch1@pcic.com");
     const summerCycle = process.env.SUMMER_PROJECT_CYCLE || "summer-2026";

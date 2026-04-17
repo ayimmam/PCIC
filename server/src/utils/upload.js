@@ -1,9 +1,14 @@
 import multer from "multer";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+export const UPLOAD_DIR = path.resolve(__dirname, "../../uploads");
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, "uploads/");
+    cb(null, UPLOAD_DIR);
   },
   filename: (_req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -41,6 +46,22 @@ const summerPdfFilter = (_req, file, cb) => {
 export const uploadSummerProject = multer({
   storage,
   fileFilter: summerPdfFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+});
+
+const leadershipPdfFilter = (_req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (ext === ".pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error("Only .pdf files are accepted for leadership compliance uploads"), false);
+  }
+};
+
+/** Multer for leadership compliance PDFs. */
+export const uploadLeadershipReport = multer({
+  storage,
+  fileFilter: leadershipPdfFilter,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
 });
 
