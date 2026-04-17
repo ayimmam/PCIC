@@ -1,6 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/api/axios";
 
+export function useComplianceSemesters(viewerScope = "anonymous") {
+  return useQuery({
+    queryKey: ["leadership-compliance", "semesters", viewerScope],
+    queryFn: async () => {
+      const { data } = await api.get("/leadership-compliance/semesters");
+      return data;
+    },
+  });
+}
+
 export function useComplianceDashboard(semester, viewerScope = "anonymous") {
   return useQuery({
     queryKey: ["leadership-compliance", "dashboard", viewerScope, semester || "current"],
@@ -56,6 +66,32 @@ export function useAddComplianceFeedback() {
       const { data } = await api.post(`/leadership-compliance/submissions/${reportId}/feedback`, {
         message,
       });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leadership-compliance"] });
+    },
+  });
+}
+
+export function useCreateComplianceSemester() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => {
+      const { data } = await api.post("/leadership-compliance/semesters", payload);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leadership-compliance"] });
+    },
+  });
+}
+
+export function useUpdateComplianceSemester() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }) => {
+      const { data } = await api.patch(`/leadership-compliance/semesters/${id}`, payload);
       return data;
     },
     onSuccess: () => {

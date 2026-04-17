@@ -39,7 +39,7 @@ const navItems = [
   { path: "/reports", label: "Decisions", icon: FileText },
   {
     path: "/leadership-compliance",
-    label: "Leadership",
+    label: "Compliance",
     icon: ClipboardCheck,
     roles: ["president", "vice_president", "pm", "mc", "domain_leader"],
   },

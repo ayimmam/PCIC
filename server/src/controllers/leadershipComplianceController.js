@@ -1,21 +1,37 @@
 import LeadershipReport from "../models/LeadershipReport.js";
+import SemesterConfig from "../models/SemesterConfig.js";
 import User from "../models/User.js";
 import { PCIC_DOMAINS } from "../constants/pcicDomains.js";
 
 const VIEWER_ROLES = new Set(["president", "vice_president", "pm", "mc"]);
+const COMPLIANCE_ROLES = ["president", "vice_president", "pm", "mc", "domain_leader"];
 
-function semesterFromDate(date) {
-  const d = date instanceof Date ? date : new Date(date);
-  if (Number.isNaN(d.getTime())) return "";
-  const year = d.getUTCFullYear();
-  const month = d.getUTCMonth() + 1;
-  if (month >= 1 && month <= 4) return `${year}-S1`;
-  if (month >= 5 && month <= 8) return `${year}-S2`;
-  return `${year}-S3`;
+function normalizeBoolean(input, fallback = false) {
+  if (typeof input === "boolean") return input;
+  if (typeof input === "string") {
+    if (input.toLowerCase() === "true") return true;
+    if (input.toLowerCase() === "false") return false;
+  }
+  return fallback;
 }
 
-function currentSemester() {
-  return semesterFromDate(new Date());
+function mapSemesterConfig(item) {
+  return {
+    _id: item._id,
+    name: item.name,
+    startDate: item.startDate,
+    endDate: item.endDate,
+    status: item.status,
+    lockSubmissions: !!item.lockSubmissions,
+    lockFeedback: !!item.lockFeedback,
+  };
+}
+
+function pickDefaultSemester(configs) {
+  if (!configs.length) return "";
+  const active = configs.find((item) => item.status === "active");
+  if (active) return active.name;
+  return configs[0].name;
 }
 
 function mapComplianceStatus(submission) {
@@ -25,12 +41,15 @@ function mapComplianceStatus(submission) {
 
 export const getDashboard = async (req, res) => {
   try {
-    const availableSemesters = await LeadershipReport.distinct("semester");
-    const current = currentSemester();
-    if (!availableSemesters.includes(current)) availableSemesters.push(current);
-    availableSemesters.sort((a, b) => b.localeCompare(a));
+    const semesterConfigs = await SemesterConfig.find({}).sort({ startDate: -1 }).lean();
+    const availableSemesters = semesterConfigs.map((item) => item.name);
+    const requestedSemester = String(req.query.semester || "").trim();
+    const semester = requestedSemester || pickDefaultSemester(semesterConfigs);
 
-    const semester = String(req.query.semester || currentSemester()).trim();
+    if (requestedSemester && !availableSemesters.includes(requestedSemester)) {
+      return res.status(400).json({ message: "Selected semester is not configured" });
+    }
+
     const isViewer = VIEWER_ROLES.has(req.user.role);
 
     const leaders = await User.find({ role: "domain_leader" })
@@ -38,11 +57,13 @@ export const getDashboard = async (req, res) => {
       .sort({ domain: 1, name: 1 })
       .lean();
 
-    const allSubmissions = await LeadershipReport.find({ semester })
-      .populate("domainLeader", "name email domain")
-      .populate("feedback.author", "name role")
-      .sort({ submittedAt: -1 })
-      .lean();
+    const allSubmissions = semester
+      ? await LeadershipReport.find({ semester })
+          .populate("domainLeader", "name email domain")
+          .populate("feedback.author", "name role")
+          .sort({ submittedAt: -1 })
+          .lean()
+      : [];
 
     const submissionsByLeader = new Map();
     for (const item of allSubmissions) {
@@ -120,7 +141,14 @@ export const getDashboard = async (req, res) => {
       { total: 0, compliant: 0, nonCompliant: 0, unassigned: 0 }
     );
 
-    res.json({ semester, availableSemesters, summary, rows });
+    res.json({
+      semester,
+      availableSemesters,
+      semesterConfigs: semesterConfigs.map(mapSemesterConfig),
+      semesterConfigRequired: semesterConfigs.length === 0,
+      summary,
+      rows,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -145,6 +173,15 @@ export const submitReport = async (req, res) => {
     }
 
     const normalizedSemester = String(semester).trim();
+    const semesterConfig = await SemesterConfig.findOne({ name: normalizedSemester }).lean();
+    if (!semesterConfig) {
+      return res.status(400).json({ message: "Selected semester is not configured" });
+    }
+
+    if (semesterConfig.status === "closed" || semesterConfig.lockSubmissions) {
+      return res.status(403).json({ message: "Submissions are locked for this semester" });
+    }
+
     const previous = await LeadershipReport.findOne({
       domainLeader: req.user._id,
       semester: normalizedSemester,
@@ -183,10 +220,19 @@ export const submitReport = async (req, res) => {
 export const getSubmissionHistory = async (req, res) => {
   try {
     const domainLeaderId = String(req.query.domainLeaderId || "").trim();
-    const semester = String(req.query.semester || currentSemester()).trim();
+    const semester = String(req.query.semester || "").trim();
 
     if (!domainLeaderId) {
       return res.status(400).json({ message: "domainLeaderId is required" });
+    }
+
+    if (!semester) {
+      return res.status(400).json({ message: "semester is required" });
+    }
+
+    const semesterConfig = await SemesterConfig.findOne({ name: semester }).lean();
+    if (!semesterConfig) {
+      return res.status(400).json({ message: "Selected semester is not configured" });
     }
 
     if (req.user.role === "domain_leader" && req.user._id.toString() !== domainLeaderId) {
@@ -243,9 +289,14 @@ export const getSubmissionHistory = async (req, res) => {
 
 export const addFeedback = async (req, res) => {
   try {
-    const existing = await LeadershipReport.findById(req.params.id).select("_id").lean();
+    const existing = await LeadershipReport.findById(req.params.id).select("_id semester").lean();
     if (!existing) {
       return res.status(404).json({ message: "Report not found" });
+    }
+
+    const semesterConfig = await SemesterConfig.findOne({ name: existing.semester }).lean();
+    if (semesterConfig && (semesterConfig.status === "closed" || semesterConfig.lockFeedback)) {
+      return res.status(403).json({ message: "Feedback is locked for this semester" });
     }
 
     const message = String(req.body.message || "").trim();
@@ -276,3 +327,111 @@ export const addFeedback = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getSemesters = async (_req, res) => {
+  try {
+    const items = await SemesterConfig.find({}).sort({ startDate: -1 }).lean();
+    res.json({ items: items.map(mapSemesterConfig) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const createSemester = async (req, res) => {
+  try {
+    const name = String(req.body.name || "").trim();
+    const startDate = req.body.startDate ? new Date(req.body.startDate) : null;
+    const endDate = req.body.endDate ? new Date(req.body.endDate) : null;
+    const status = String(req.body.status || "planned").trim();
+    const lockSubmissions = normalizeBoolean(req.body.lockSubmissions, false);
+    const lockFeedback = normalizeBoolean(req.body.lockFeedback, false);
+
+    if (!name || !startDate || !endDate || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return res.status(400).json({ message: "name, startDate, and endDate are required" });
+    }
+
+    if (startDate >= endDate) {
+      return res.status(400).json({ message: "startDate must be earlier than endDate" });
+    }
+
+    if (!["planned", "active", "closed"].includes(status)) {
+      return res.status(400).json({ message: "status must be planned, active, or closed" });
+    }
+
+    if (status === "active") {
+      await SemesterConfig.updateMany({ status: "active" }, { $set: { status: "planned" } });
+    }
+
+    const item = await SemesterConfig.create({
+      name,
+      startDate,
+      endDate,
+      status,
+      lockSubmissions,
+      lockFeedback,
+      createdBy: req.user._id,
+    });
+
+    res.status(201).json(mapSemesterConfig(item.toObject()));
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "Semester name already exists" });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateSemester = async (req, res) => {
+  try {
+    const existing = await SemesterConfig.findById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ message: "Semester not found" });
+    }
+
+    const updates = {};
+
+    if (req.body.name !== undefined) updates.name = String(req.body.name || "").trim();
+    if (req.body.startDate !== undefined) updates.startDate = new Date(req.body.startDate);
+    if (req.body.endDate !== undefined) updates.endDate = new Date(req.body.endDate);
+    if (req.body.status !== undefined) updates.status = String(req.body.status || "").trim();
+    if (req.body.lockSubmissions !== undefined) {
+      updates.lockSubmissions = normalizeBoolean(req.body.lockSubmissions, existing.lockSubmissions);
+    }
+    if (req.body.lockFeedback !== undefined) {
+      updates.lockFeedback = normalizeBoolean(req.body.lockFeedback, existing.lockFeedback);
+    }
+
+    const startDate = updates.startDate || existing.startDate;
+    const endDate = updates.endDate || existing.endDate;
+    if (!startDate || !endDate || Number.isNaN(new Date(startDate).getTime()) || Number.isNaN(new Date(endDate).getTime())) {
+      return res.status(400).json({ message: "startDate and endDate must be valid dates" });
+    }
+
+    if (new Date(startDate) >= new Date(endDate)) {
+      return res.status(400).json({ message: "startDate must be earlier than endDate" });
+    }
+
+    if (updates.status && !["planned", "active", "closed"].includes(updates.status)) {
+      return res.status(400).json({ message: "status must be planned, active, or closed" });
+    }
+
+    if (updates.status === "active") {
+      await SemesterConfig.updateMany(
+        { _id: { $ne: existing._id }, status: "active" },
+        { $set: { status: "planned" } }
+      );
+    }
+
+    Object.assign(existing, updates);
+    await existing.save();
+
+    res.json(mapSemesterConfig(existing.toObject()));
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "Semester name already exists" });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export { COMPLIANCE_ROLES };

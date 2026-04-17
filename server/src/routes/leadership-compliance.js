@@ -3,6 +3,10 @@ import auth from "../middleware/auth.js";
 import roleGuard from "../middleware/roleGuard.js";
 import { uploadLeadershipReport } from "../utils/upload.js";
 import {
+  COMPLIANCE_ROLES,
+  getSemesters,
+  createSemester,
+  updateSemester,
   getDashboard,
   getSubmissionHistory,
   submitReport,
@@ -11,11 +15,15 @@ import {
 
 const router = Router();
 
-router.get("/dashboard", auth, roleGuard("president", "vice_president", "pm", "mc", "domain_leader"), getDashboard);
+router.get("/semesters", auth, roleGuard(...COMPLIANCE_ROLES), getSemesters);
+router.post("/semesters", auth, roleGuard("president"), createSemester);
+router.patch("/semesters/:id", auth, roleGuard("president"), updateSemester);
+
+router.get("/dashboard", auth, roleGuard(...COMPLIANCE_ROLES), getDashboard);
 router.get(
   "/submissions/history",
   auth,
-  roleGuard("president", "vice_president", "pm", "mc", "domain_leader"),
+  roleGuard(...COMPLIANCE_ROLES),
   getSubmissionHistory
 );
 router.post(

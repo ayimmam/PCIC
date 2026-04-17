@@ -19,9 +19,12 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useComplianceDashboard,
+  useComplianceSemesters,
   useComplianceSubmissionHistory,
   useSubmitComplianceReport,
   useAddComplianceFeedback,
+  useCreateComplianceSemester,
+  useUpdateComplianceSemester,
 } from "@/hooks/useLeadershipCompliance";
 
 function statusBadgeVariant(status) {
@@ -43,6 +46,12 @@ function formatDate(dateValue) {
   return d.toLocaleDateString();
 }
 
+function semesterStatusVariant(status) {
+  if (status === "active") return "success";
+  if (status === "closed") return "destructive";
+  return "secondary";
+}
+
 export default function LeadershipCompliance() {
   const { user } = useAuth();
   const isPresident = user?.role === "president";
@@ -59,6 +68,15 @@ export default function LeadershipCompliance() {
   const [detailPayload, setDetailPayload] = useState(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyContext, setHistoryContext] = useState(null);
+  const [semesterForm, setSemesterForm] = useState({
+    name: "",
+    startDate: "",
+    endDate: "",
+    status: "planned",
+    lockSubmissions: false,
+    lockFeedback: false,
+  });
+  const [editingSemesterId, setEditingSemesterId] = useState(null);
 
   function fileHref(fileUrl) {
     if (!fileUrl) return "#";
@@ -73,6 +91,7 @@ export default function LeadershipCompliance() {
   }
 
   const viewerScope = user ? `${user._id}:${user.role}` : "anonymous";
+  const { data: semesterData, isLoading: isSemestersLoading } = useComplianceSemesters(viewerScope);
   const { data, isLoading } = useComplianceDashboard(semester || undefined, viewerScope);
   const { data: historyData, isLoading: isHistoryLoading } = useComplianceSubmissionHistory(
     semester,
@@ -80,7 +99,8 @@ export default function LeadershipCompliance() {
     viewerScope,
     historyOpen
   );
-  const semesters = data?.availableSemesters || [];
+  const semesterConfigs = semesterData?.items || data?.semesterConfigs || [];
+  const semesters = semesterConfigs.map((item) => item.name);
   const semestersLoading = isLoading && semesters.length === 0;
 
   useEffect(() => {
@@ -91,8 +111,14 @@ export default function LeadershipCompliance() {
 
   const submitReport = useSubmitComplianceReport();
   const addFeedback = useAddComplianceFeedback();
+  const createSemester = useCreateComplianceSemester();
+  const updateSemester = useUpdateComplianceSemester();
 
   const rows = data?.rows || [];
+  const selectedSemesterConfig = useMemo(
+    () => semesterConfigs.find((item) => item.name === semester) || null,
+    [semesterConfigs, semester]
+  );
   const myRow = useMemo(() => rows.find((row) => row.domainLeader?._id === user?._id), [rows, user?._id]);
 
   const handleSubmit = (e) => {
@@ -104,6 +130,11 @@ export default function LeadershipCompliance() {
 
     if (!file) {
       toast.error("Please attach a PDF report file");
+      return;
+    }
+
+    if (selectedSemesterConfig?.lockSubmissions || selectedSemesterConfig?.status === "closed") {
+      toast.error("Submissions are locked for this semester");
       return;
     }
 
@@ -173,10 +204,75 @@ export default function LeadershipCompliance() {
     setHistoryOpen(true);
   };
 
+  const handleSemesterSubmit = (e) => {
+    e.preventDefault();
+
+    const payload = {
+      name: semesterForm.name.trim(),
+      startDate: semesterForm.startDate,
+      endDate: semesterForm.endDate,
+      status: semesterForm.status,
+      lockSubmissions: semesterForm.lockSubmissions,
+      lockFeedback: semesterForm.lockFeedback,
+    };
+
+    if (editingSemesterId) {
+      updateSemester.mutate(
+        { id: editingSemesterId, payload },
+        {
+          onSuccess: () => {
+            toast.success("Semester updated");
+            setEditingSemesterId(null);
+            setSemesterForm({
+              name: "",
+              startDate: "",
+              endDate: "",
+              status: "planned",
+              lockSubmissions: false,
+              lockFeedback: false,
+            });
+          },
+          onError: (error) => {
+            toast.error(error.response?.data?.message || "Failed to update semester");
+          },
+        }
+      );
+      return;
+    }
+
+    createSemester.mutate(payload, {
+      onSuccess: () => {
+        toast.success("Semester created");
+        setSemesterForm({
+          name: "",
+          startDate: "",
+          endDate: "",
+          status: "planned",
+          lockSubmissions: false,
+          lockFeedback: false,
+        });
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Failed to create semester");
+      },
+    });
+  };
+
+  const runSemesterUpdate = (id, payload) => {
+    updateSemester.mutate(
+      { id, payload },
+      {
+        onError: (error) => {
+          toast.error(error.response?.data?.message || "Failed to update semester");
+        },
+      }
+    );
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Leadership Compliance"
+        title="Domain Leader Compliance"
         subtitle="Track domain leader reporting compliance by semester"
       />
 
@@ -203,6 +299,258 @@ export default function LeadershipCompliance() {
           )}
         </CardContent>
       </Card>
+
+      {isPresident && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Semester Configuration</CardTitle>
+            <p className="text-xs text-muted-foreground">President controls semester windows, active semester, and locks.</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSemesterSubmit} className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-1">
+                <Label htmlFor="semester-name">Name</Label>
+                <Input
+                  id="semester-name"
+                  placeholder="2026-S1"
+                  value={semesterForm.name}
+                  onChange={(e) => setSemesterForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="semester-start">Start date</Label>
+                <Input
+                  id="semester-start"
+                  type="date"
+                  value={semesterForm.startDate}
+                  onChange={(e) => setSemesterForm((prev) => ({ ...prev, startDate: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="semester-end">End date</Label>
+                <Input
+                  id="semester-end"
+                  type="date"
+                  value={semesterForm.endDate}
+                  onChange={(e) => setSemesterForm((prev) => ({ ...prev, endDate: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Status</Label>
+                <Select
+                  value={semesterForm.status}
+                  onValueChange={(value) => setSemesterForm((prev) => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="planned">planned</SelectItem>
+                    <SelectItem value="active">active</SelectItem>
+                    <SelectItem value="closed">closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Submissions lock</Label>
+                <Select
+                  value={semesterForm.lockSubmissions ? "true" : "false"}
+                  onValueChange={(value) =>
+                    setSemesterForm((prev) => ({ ...prev, lockSubmissions: value === "true" }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="false">Unlocked</SelectItem>
+                    <SelectItem value="true">Locked</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Feedback lock</Label>
+                <Select
+                  value={semesterForm.lockFeedback ? "true" : "false"}
+                  onValueChange={(value) =>
+                    setSemesterForm((prev) => ({ ...prev, lockFeedback: value === "true" }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="false">Unlocked</SelectItem>
+                    <SelectItem value="true">Locked</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2 lg:col-span-3">
+                <Button type="submit" disabled={createSemester.isPending || updateSemester.isPending}>
+                  {editingSemesterId
+                    ? (updateSemester.isPending ? "Saving..." : "Save changes")
+                    : (createSemester.isPending ? "Creating..." : "Create semester")}
+                </Button>
+                {editingSemesterId ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setEditingSemesterId(null);
+                      setSemesterForm({
+                        name: "",
+                        startDate: "",
+                        endDate: "",
+                        status: "planned",
+                        lockSubmissions: false,
+                        lockFeedback: false,
+                      });
+                    }}
+                  >
+                    Cancel edit
+                  </Button>
+                ) : null}
+              </div>
+            </form>
+
+            {isSemestersLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : semesterConfigs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No semester configured yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[760px] text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th className="pb-2 pr-3 font-medium">Name</th>
+                      <th className="pb-2 pr-3 font-medium">Window</th>
+                      <th className="pb-2 pr-3 font-medium">Status</th>
+                      <th className="pb-2 pr-3 font-medium">Locks</th>
+                      <th className="pb-2 pr-3 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {semesterConfigs.map((item) => (
+                      <tr key={item._id} className="border-b last:border-0">
+                        <td className="py-2 pr-3">{item.name}</td>
+                        <td className="py-2 pr-3">
+                          {formatDate(item.startDate)} - {formatDate(item.endDate)}
+                        </td>
+                        <td className="py-2 pr-3">
+                          <Badge variant={semesterStatusVariant(item.status)}>{item.status}</Badge>
+                        </td>
+                        <td className="py-2 pr-3">
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant={item.lockSubmissions ? "destructive" : "secondary"}>
+                              submit {item.lockSubmissions ? "locked" : "open"}
+                            </Badge>
+                            <Badge variant={item.lockFeedback ? "destructive" : "secondary"}>
+                              feedback {item.lockFeedback ? "locked" : "open"}
+                            </Badge>
+                          </div>
+                        </td>
+                        <td className="py-2 pr-3">
+                          <div className="flex flex-wrap gap-2">
+                            {item.status !== "active" ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingSemesterId(item._id);
+                                  setSemesterForm({
+                                    name: item.name,
+                                    startDate: item.startDate ? new Date(item.startDate).toISOString().slice(0, 10) : "",
+                                    endDate: item.endDate ? new Date(item.endDate).toISOString().slice(0, 10) : "",
+                                    status: item.status || "planned",
+                                    lockSubmissions: !!item.lockSubmissions,
+                                    lockFeedback: !!item.lockFeedback,
+                                  });
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingSemesterId(item._id);
+                                  setSemesterForm({
+                                    name: item.name,
+                                    startDate: item.startDate ? new Date(item.startDate).toISOString().slice(0, 10) : "",
+                                    endDate: item.endDate ? new Date(item.endDate).toISOString().slice(0, 10) : "",
+                                    status: item.status || "planned",
+                                    lockSubmissions: !!item.lockSubmissions,
+                                    lockFeedback: !!item.lockFeedback,
+                                  });
+                                }}
+                                disabled={updateSemester.isPending}
+                              >
+                                Edit
+                              </Button>
+                            )}
+
+                            {item.status !== "active" ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => runSemesterUpdate(item._id, { status: "active" })}
+                                disabled={updateSemester.isPending}
+                              >
+                                Set active
+                              </Button>
+                            ) : null}
+                            {item.status !== "closed" ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => runSemesterUpdate(item._id, { status: "closed" })}
+                                disabled={updateSemester.isPending}
+                              >
+                                Close
+                              </Button>
+                            ) : null}
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                runSemesterUpdate(item._id, {
+                                  lockSubmissions: !item.lockSubmissions,
+                                })
+                              }
+                              disabled={updateSemester.isPending}
+                            >
+                              {item.lockSubmissions ? "Unlock submit" : "Lock submit"}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                runSemesterUpdate(item._id, {
+                                  lockFeedback: !item.lockFeedback,
+                                })
+                              }
+                              disabled={updateSemester.isPending}
+                            >
+                              {item.lockFeedback ? "Unlock feedback" : "Lock feedback"}
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -383,6 +731,12 @@ export default function LeadershipCompliance() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Submit Your Semester Report</CardTitle>
+            {!selectedSemesterConfig ? (
+              <p className="text-xs text-muted-foreground">President must configure a semester before submissions can start.</p>
+            ) : null}
+            {selectedSemesterConfig?.lockSubmissions || selectedSemesterConfig?.status === "closed" ? (
+              <p className="text-xs text-destructive">Submissions are locked for {selectedSemesterConfig.name}.</p>
+            ) : null}
             {myRow && (
               <p className="text-xs text-muted-foreground">
                 Current status: {statusLabel(myRow.status)}
@@ -436,7 +790,15 @@ export default function LeadershipCompliance() {
                   placeholder="https://..."
                 />
               </div>
-              <Button type="submit" disabled={submitReport.isPending}>
+              <Button
+                type="submit"
+                disabled={
+                  submitReport.isPending ||
+                  !selectedSemesterConfig ||
+                  selectedSemesterConfig.status === "closed" ||
+                  selectedSemesterConfig.lockSubmissions
+                }
+              >
                 {submitReport.isPending ? "Submitting..." : "Submit Report"}
               </Button>
             </form>
