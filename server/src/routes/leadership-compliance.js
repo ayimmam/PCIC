@@ -16,8 +16,8 @@ import {
 const router = Router();
 
 router.get("/semesters", auth, roleGuard(...COMPLIANCE_ROLES), getSemesters);
-router.post("/semesters", auth, roleGuard("president"), createSemester);
-router.patch("/semesters/:id", auth, roleGuard("president"), updateSemester);
+router.post("/semesters", auth, roleGuard("president", "vice_president"), createSemester);
+router.patch("/semesters/:id", auth, roleGuard("president", "vice_president"), updateSemester);
 
 router.get("/dashboard", auth, roleGuard(...COMPLIANCE_ROLES), getDashboard);
 router.get(
@@ -39,6 +39,6 @@ router.post(
   },
   submitReport
 );
-router.post("/submissions/:id/feedback", auth, roleGuard("president"), addFeedback);
+router.post("/submissions/:id/feedback", auth, roleGuard("president", "vice_president"), addFeedback);
 
 export default router;

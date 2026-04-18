@@ -54,7 +54,7 @@ function semesterStatusVariant(status) {
 
 export default function LeadershipCompliance() {
   const { user } = useAuth();
-  const isPresident = user?.role === "president";
+  const isLeadershipAdmin = user?.role === "president" || user?.role === "vice_president";
   const isDomainLeader = user?.role === "domain_leader";
 
   const [semester, setSemester] = useState("");
@@ -300,11 +300,11 @@ export default function LeadershipCompliance() {
         </CardContent>
       </Card>
 
-      {isPresident && (
+      {isLeadershipAdmin && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Semester Configuration</CardTitle>
-            <p className="text-xs text-muted-foreground">President controls semester windows, active semester, and locks.</p>
+            <p className="text-xs text-muted-foreground">President and VP control semester windows, active semester, and locks.</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSemesterSubmit} className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -675,7 +675,7 @@ export default function LeadershipCompliance() {
                               <p className="text-xs text-muted-foreground">No feedback yet</p>
                             )}
 
-                            {isPresident && row.submission?._id && (
+                            {isLeadershipAdmin && row.submission?._id && (
                               <div className="flex max-w-[280px] gap-2">
                                 <Input
                                   value={feedbackByReport[row.submission._id] || ""}
@@ -732,7 +732,7 @@ export default function LeadershipCompliance() {
           <CardHeader>
             <CardTitle className="text-base">Submit Your Semester Report</CardTitle>
             {!selectedSemesterConfig ? (
-              <p className="text-xs text-muted-foreground">President must configure a semester before submissions can start.</p>
+              <p className="text-xs text-muted-foreground">Leadership must configure a semester before submissions can start.</p>
             ) : null}
             {selectedSemesterConfig?.lockSubmissions || selectedSemesterConfig?.status === "closed" ? (
               <p className="text-xs text-destructive">Submissions are locked for {selectedSemesterConfig.name}.</p>

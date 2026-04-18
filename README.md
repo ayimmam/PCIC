@@ -154,10 +154,10 @@ server/                         Express backend
 | GET | `/api/strikes/member/:id` | Member strike history |
 | GET | `/api/leadership-compliance/dashboard?semester=YYYY-S1` | Compliance dashboard rows + summary (includes `availableSemesters`) |
 | GET | `/api/leadership-compliance/semesters` | List configured semesters and lock/status metadata |
-| POST | `/api/leadership-compliance/semesters` | President creates a semester window (name, startDate, endDate, status, locks) |
-| PATCH | `/api/leadership-compliance/semesters/:id` | President updates semester dates/status/locks |
+| POST | `/api/leadership-compliance/semesters` | President or VP creates a semester window (name, startDate, endDate, status, locks) |
+| PATCH | `/api/leadership-compliance/semesters/:id` | President or VP updates semester dates/status/locks |
 | POST | `/api/leadership-compliance/submissions` | Domain Leader uploads report PDF (`multipart` field `file`) |
-| POST | `/api/leadership-compliance/submissions/:id/feedback` | President adds feedback comment to a submitted report |
+| POST | `/api/leadership-compliance/submissions/:id/feedback` | President or VP adds feedback comment to a submitted report |
 | GET/POST | `/api/candidates` | List / submit application |
 | PUT | `/api/candidates/:id/approve` | Approve candidate |
 | GET | `/api/summer-projects/mine` | Current user’s summer submission for the active cycle (latest) |
