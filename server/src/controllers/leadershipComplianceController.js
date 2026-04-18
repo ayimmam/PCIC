@@ -3,8 +3,8 @@ import SemesterConfig from "../models/SemesterConfig.js";
 import User from "../models/User.js";
 import { PCIC_DOMAINS } from "../constants/pcicDomains.js";
 
-const VIEWER_ROLES = new Set(["president", "vice_president", "pm", "mc"]);
-const COMPLIANCE_ROLES = ["president", "vice_president", "pm", "mc", "domain_leader"];
+const VIEWER_ROLES = new Set(["president", "vice_president"]);
+const COMPLIANCE_ROLES = ["president", "vice_president", "domain_leader"];
 
 function normalizeBoolean(input, fallback = false) {
   if (typeof input === "boolean") return input;

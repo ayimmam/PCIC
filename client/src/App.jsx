@@ -41,7 +41,7 @@ const navItems = [
     path: "/leadership-compliance",
     label: "Compliance",
     icon: ClipboardCheck,
-    roles: ["president", "vice_president", "pm", "mc", "domain_leader"],
+    roles: ["president", "vice_president", "domain_leader"],
   },
   { path: "/career", label: "Career", icon: Briefcase },
   { path: "/projects", label: "Projects", icon: FolderKanban, batches: ["batch_2", "batch_3"], roles: ["pm"] },
