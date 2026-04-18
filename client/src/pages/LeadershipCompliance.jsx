@@ -92,7 +92,7 @@ export default function LeadershipCompliance() {
 
   const viewerScope = user ? `${user._id}:${user.role}` : "anonymous";
   const { data: semesterData, isLoading: isSemestersLoading } = useComplianceSemesters(viewerScope);
-  const { data, isLoading } = useComplianceDashboard(semester || undefined, viewerScope);
+  const { data, isLoading } = useComplianceDashboard(semester, viewerScope, Boolean(semester));
   const { data: historyData, isLoading: isHistoryLoading } = useComplianceSubmissionHistory(
     semester,
     historyContext?.domainLeaderId,
@@ -101,7 +101,7 @@ export default function LeadershipCompliance() {
   );
   const semesterConfigs = semesterData?.items || data?.semesterConfigs || [];
   const semesters = semesterConfigs.map((item) => item.name);
-  const semestersLoading = isLoading && semesters.length === 0;
+  const semestersLoading = isSemestersLoading && semesters.length === 0;
 
   useEffect(() => {
     if (!semester && semesters.length > 0) {
@@ -114,7 +114,11 @@ export default function LeadershipCompliance() {
   const createSemester = useCreateComplianceSemester();
   const updateSemester = useUpdateComplianceSemester();
 
-  const rows = data?.rows || [];
+  const rows = useMemo(() => {
+    const baseRows = data?.rows || [];
+    if (!semester) return baseRows;
+    return baseRows.filter((row) => !row.semester || row.semester === semester);
+  }, [data?.rows, semester]);
   const selectedSemesterConfig = useMemo(
     () => semesterConfigs.find((item) => item.name === semester) || null,
     [semesterConfigs, semester]

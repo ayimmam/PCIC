@@ -11,9 +11,10 @@ export function useComplianceSemesters(viewerScope = "anonymous") {
   });
 }
 
-export function useComplianceDashboard(semester, viewerScope = "anonymous") {
+export function useComplianceDashboard(semester, viewerScope = "anonymous", enabled = true) {
   return useQuery({
     queryKey: ["leadership-compliance", "dashboard", viewerScope, semester || "current"],
+    enabled: Boolean(enabled && semester),
     queryFn: async () => {
       const params = new URLSearchParams();
       if (semester) params.set("semester", semester);
