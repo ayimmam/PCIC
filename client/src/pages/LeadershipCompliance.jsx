@@ -114,11 +114,30 @@ export default function LeadershipCompliance() {
   const createSemester = useCreateComplianceSemester();
   const updateSemester = useUpdateComplianceSemester();
 
+  const selectedSemesterMismatch = Boolean(
+    semester && data?.semester && String(data.semester) !== String(semester)
+  );
+
   const rows = useMemo(() => {
+    if (selectedSemesterMismatch) return [];
     const baseRows = data?.rows || [];
     if (!semester) return baseRows;
     return baseRows.filter((row) => !row.semester || row.semester === semester);
-  }, [data?.rows, semester]);
+  }, [data?.rows, semester, selectedSemesterMismatch]);
+
+  const summary = useMemo(
+    () => rows.reduce(
+      (acc, row) => {
+        acc.total += 1;
+        if (row.status === "compliant") acc.compliant += 1;
+        if (row.status === "non_compliant") acc.nonCompliant += 1;
+        if (row.status === "unassigned") acc.unassigned += 1;
+        return acc;
+      },
+      { total: 0, compliant: 0, nonCompliant: 0, unassigned: 0 }
+    ),
+    [rows]
+  );
   const selectedSemesterConfig = useMemo(
     () => semesterConfigs.find((item) => item.name === semester) || null,
     [semesterConfigs, semester]
@@ -562,7 +581,7 @@ export default function LeadershipCompliance() {
             <CardTitle className="text-sm">Total</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{data?.summary?.total || 0}</p>
+            <p className="text-2xl font-bold">{summary.total || 0}</p>
           </CardContent>
         </Card>
         <Card>
@@ -570,7 +589,7 @@ export default function LeadershipCompliance() {
             <CardTitle className="text-sm">Compliant</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{data?.summary?.compliant || 0}</p>
+            <p className="text-2xl font-bold">{summary.compliant || 0}</p>
           </CardContent>
         </Card>
         <Card>
@@ -578,7 +597,7 @@ export default function LeadershipCompliance() {
             <CardTitle className="text-sm">Non-compliant</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{data?.summary?.nonCompliant || 0}</p>
+            <p className="text-2xl font-bold">{summary.nonCompliant || 0}</p>
           </CardContent>
         </Card>
         <Card>
@@ -586,7 +605,7 @@ export default function LeadershipCompliance() {
             <CardTitle className="text-sm">Unassigned</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{data?.summary?.unassigned || 0}</p>
+            <p className="text-2xl font-bold">{summary.unassigned || 0}</p>
           </CardContent>
         </Card>
       </div>
@@ -597,6 +616,11 @@ export default function LeadershipCompliance() {
           <p className="text-xs text-muted-foreground">Status is based on whether a report exists for the selected semester.</p>
         </CardHeader>
         <CardContent>
+          {selectedSemesterMismatch ? (
+            <p className="mb-3 text-sm text-muted-foreground">
+              Refreshing selected semester data. If this persists, reselect the semester.
+            </p>
+          ) : null}
           {isLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-10 w-full" />
