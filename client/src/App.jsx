@@ -12,6 +12,7 @@ import Career from "@/pages/Career";
 import Admin from "@/pages/Admin";
 import Reports from "@/pages/Reports";
 import ProjectMetricLog from "@/pages/ProjectMetricLog";
+import LeadershipCompliance from "@/pages/LeadershipCompliance";
 import SummerProject from "@/pages/SummerProject";
 import {
   LayoutDashboard,
@@ -25,6 +26,7 @@ import {
   Menu,
   X,
   CloudRain,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -35,6 +37,12 @@ const navItems = [
   { path: "/events", label: "Events", icon: CalendarDays },
   { path: "/members", label: "Members", icon: Users },
   { path: "/reports", label: "Decisions", icon: FileText },
+  {
+    path: "/leadership-compliance",
+    label: "Compliance",
+    icon: ClipboardCheck,
+    roles: ["president", "vice_president", "domain_leader"],
+  },
   { path: "/career", label: "Career", icon: Briefcase },
   { path: "/projects", label: "Projects", icon: FolderKanban, batches: ["batch_2", "batch_3"], roles: ["pm"] },
   {
@@ -135,6 +143,7 @@ function AppLayout() {
           <Route path="/events" element={<Events />} />
           <Route path="/members" element={<Members />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/leadership-compliance" element={<LeadershipCompliance />} />
           <Route path="/career" element={<Career />} />
           <Route path="/projects" element={<ProjectMetricLog />} />
           <Route path="/summer-project" element={<SummerProject />} />

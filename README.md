@@ -132,6 +132,7 @@ server/                         Express backend
 - **Event Attendance** (F-001) — Create events, track check-ins by domain
 - **Decision Repository** (F-012) — Log and track executive decisions with status timeline
 - **Strike System** (F-006) — Search members, assign disciplinary strikes
+- **Leadership Compliance** (F-005) — Semester dashboard for Domain Leader report compliance
 - **Accelerated Entry** (F-004) — Candidate portfolio upload, president approval
 - **Summer project (Batch 1)** — Members upload a PDF; Domain Leaders in the same **domain** pass/fail; pass promotes the student to **Batch 2**. Domains are only: Code Crafters, Turing Tribe, Cyber Crew, Pixel Peeps.
 - **Member Management** — Filter, view profiles, change status (triggers email)
@@ -151,6 +152,12 @@ server/                         Express backend
 | PUT | `/api/decisions/:id` | Update decision (incl. status, dates, actionItems) |
 | GET/POST | `/api/strikes` | List / assign strikes |
 | GET | `/api/strikes/member/:id` | Member strike history |
+| GET | `/api/leadership-compliance/dashboard?semester=YYYY-S1` | Compliance dashboard rows + summary (includes `availableSemesters`) |
+| GET | `/api/leadership-compliance/semesters` | List configured semesters and lock/status metadata |
+| POST | `/api/leadership-compliance/semesters` | President or VP creates a semester window (name, startDate, endDate, status, locks) |
+| PATCH | `/api/leadership-compliance/semesters/:id` | President or VP updates semester dates/status/locks |
+| POST | `/api/leadership-compliance/submissions` | Domain Leader uploads report PDF (`multipart` field `file`) |
+| POST | `/api/leadership-compliance/submissions/:id/feedback` | President or VP adds feedback comment to a submitted report |
 | GET/POST | `/api/candidates` | List / submit application |
 | PUT | `/api/candidates/:id/approve` | Approve candidate |
 | GET | `/api/summer-projects/mine` | Current user’s summer submission for the active cycle (latest) |

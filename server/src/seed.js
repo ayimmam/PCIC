@@ -8,6 +8,8 @@ import WeeklyReport from "./models/WeeklyReport.js";
 import ProjectResource from "./models/ProjectResource.js";
 import ProjectIssue from "./models/ProjectIssue.js";
 import SummerProjectSubmission from "./models/SummerProjectSubmission.js";
+import LeadershipReport from "./models/LeadershipReport.js";
+import SemesterConfig from "./models/SemesterConfig.js";
 import { buildDomainStudentUsers } from "./seed/domainStudents.js";
 
 dotenv.config();
@@ -122,6 +124,8 @@ async function seed() {
     await WeeklyReport.deleteMany({});
     await ProjectResource.deleteMany({});
     await ProjectIssue.deleteMany({});
+    await LeadershipReport.deleteMany({});
+    await SemesterConfig.deleteMany({});
     console.log("Cleared existing data");
 
     // Seed users
@@ -161,6 +165,37 @@ async function seed() {
     const dawit = users.find((u) => u.email === "dawit@pcic.com");
     const dlCode = users.find((u) => u.email === "leader.codecrafters@pcic.com");
     const dlTuring = users.find((u) => u.email === "leader.turingtribe@pcic.com");
+    const dlCyber = users.find((u) => u.email === "leader.cybercrew@pcic.com");
+
+    const currentYear = new Date().getUTCFullYear();
+    const semester1Name = `${currentYear}-S1`;
+    const semester2Name = `${currentYear}-S2`;
+
+    const semester1Start = new Date(Date.UTC(currentYear - 1, 8, 11, 0, 0, 0));
+    const semester1End = new Date(Date.UTC(currentYear, 0, 30, 23, 59, 59));
+    const semester2Start = new Date(Date.UTC(currentYear, 0, 31, 0, 0, 0));
+    const semester2End = new Date(Date.UTC(currentYear, 8, 10, 23, 59, 59));
+
+    await SemesterConfig.create([
+      {
+        name: semester1Name,
+        startDate: semester1Start,
+        endDate: semester1End,
+        status: "closed",
+        lockSubmissions: true,
+        lockFeedback: false,
+        createdBy: president._id,
+      },
+      {
+        name: semester2Name,
+        startDate: semester2Start,
+        endDate: semester2End,
+        status: "active",
+        lockSubmissions: false,
+        lockFeedback: false,
+        createdBy: president._id,
+      },
+    ]);
 
     const projectMembers = [dlCode._id, dlTuring._id, abebe._id, dawit._id];
 
@@ -243,7 +278,46 @@ async function seed() {
       },
     ]);
 
-    console.log(`Seeded 2 projects with todos, reports, resources, and issues`);
+    await LeadershipReport.create([
+      {
+        domainLeader: dlCode._id,
+        domain: dlCode.domain,
+        semester: semester1Name,
+        reportTitle: "Code Crafters Semester Report",
+        description: "Delivered weekly summaries, resolved event bottlenecks, and tracked active members.",
+        fileUrl: "uploads/seed-leadership-code-crafters.pdf",
+        notes: "All weekly reports submitted on time.",
+        submittedAt: new Date(Date.UTC(currentYear, 2, 25)),
+        version: 1,
+        isLatest: true,
+      },
+      {
+        domainLeader: dlTuring._id,
+        domain: dlTuring.domain,
+        semester: semester1Name,
+        reportTitle: "Turing Tribe Semester Report",
+        description: "Completed roadmap checkpoints and maintained documentation consistency.",
+        fileUrl: "uploads/seed-leadership-turing-tribe.pdf",
+        notes: "Submitted after deadline due to exam schedule overlap.",
+        submittedAt: new Date(Date.UTC(currentYear, 4, 4)),
+        version: 1,
+        isLatest: true,
+      },
+      {
+        domainLeader: dlCyber._id,
+        domain: dlCyber.domain,
+        semester: semester1Name,
+        reportTitle: "Cyber Crew Semester Report",
+        description: "Published technical updates and coordinated knowledge-sharing sessions.",
+        fileUrl: "uploads/seed-leadership-cyber-crew.pdf",
+        notes: "Initial version.",
+        submittedAt: new Date(Date.UTC(currentYear, 1, 18)),
+        version: 1,
+        isLatest: true,
+      },
+    ]);
+
+    console.log(`Seeded 2 projects with todos, reports, resources, issues, and leadership compliance samples`);
 
     const summerDemo = users.find((u) => u.email === "summer.batch1@pcic.com");
     const summerCycle = process.env.SUMMER_PROJECT_CYCLE || "summer-2026";
