@@ -14,3 +14,4 @@ uploads/
 .cursor/debug*.log
 
 # Keep .cursor/rules/ and .cursor/skills/ tracked (they're project config)
+node_modules/
