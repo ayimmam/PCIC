@@ -4,6 +4,7 @@ import MemberTable from "@/components/members/MemberTable";
 import MemberFilters from "@/components/members/MemberFilters";
 import MemberDetail from "@/components/members/MemberDetail";
 import CandidateReview from "@/components/candidates/CandidateReview";
+import AssignStrikeDialog from "@/components/strikes/AssignStrikeDialog";
 import { useMembers } from "@/hooks/useMembers";
 import { useStrikes } from "@/hooks/useStrikes";
 import { useCandidates } from "@/hooks/useCandidates";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 export default function Members() {
   const [filters, setFilters] = useState({ search: "", domain: "", batch: "", status: "" });
   const [selectedMember, setSelectedMember] = useState(null);
+  const [assignStrikeMember, setAssignStrikeMember] = useState(null);
   const [reviewCandidate, setReviewCandidate] = useState(null);
   const { user } = useAuth();
 
@@ -108,6 +110,7 @@ export default function Members() {
         isLoading={isLoading}
         strikeCounts={strikeCounts}
         onRowClick={setSelectedMember}
+        onAssignStrike={setAssignStrikeMember}
       />
       <MemberDetail
         member={selectedMember}
@@ -118,6 +121,11 @@ export default function Members() {
         candidate={reviewCandidate}
         open={!!reviewCandidate}
         onOpenChange={(open) => !open && setReviewCandidate(null)}
+      />
+      <AssignStrikeDialog
+        open={!!assignStrikeMember}
+        onOpenChange={(open) => !open && setAssignStrikeMember(null)}
+        member={assignStrikeMember}
       />
     </div>
   );

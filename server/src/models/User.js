@@ -29,9 +29,12 @@ const userSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "warning", "inactive"],
+      enum: ["active", "warning", "inactive", "suspended"],
       default: "active",
     },
+    isFlagged: { type: Boolean, default: false },
+    flagAssignedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    dismissFlagRequested: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

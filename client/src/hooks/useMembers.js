@@ -66,3 +66,30 @@ export function useUpdateMemberProfile() {
     },
   });
 }
+
+export function useRequestDismissFlag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { data } = await api.put(`/members/${id}/request-dismiss-flag`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}
+
+export function useApproveDismissFlag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { data } = await api.put(`/members/${id}/approve-dismiss-flag`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+      qc.invalidateQueries({ queryKey: ["strikes"] });
+    },
+  });
+}
