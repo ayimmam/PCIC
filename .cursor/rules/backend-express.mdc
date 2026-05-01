@@ -1,0 +1,51 @@
+---
+description: Node.js/Express backend conventions for the PCIC server
+globs: server/**/*.js
+alwaysApply: false
+---
+
+# Backend Conventions
+
+## Architecture (routes → controllers → models)
+
+```
+server/src/routes/feature.js      — Route definitions, middleware attachment
+server/src/controllers/featureController.js — Business logic, request/response
+server/src/models/Feature.js      — Mongoose schema & model
+server/src/middleware/             — auth.js (JWT), roleGuard.js (role check)
+server/src/utils/                  — email.js, upload.js
+```
+
+## Patterns
+
+- **ES modules** — use `import`/`export`, every file uses `.js` extension in imports
+- Route files use `Router()` from Express, exported as default
+- Controllers are named exports: `export const getItems = async (req, res) => {}`
+- Always wrap controller logic in try/catch, return `res.status(code).json({ message })`
+- Use `req.user` (set by auth middleware) for the authenticated user
+- Role checks: `roleGuard("president", "pm")` — pass allowed roles as arguments
+
+## Mongoose Models
+
+- Schema defined with `new mongoose.Schema({...}, { timestamps: true })`
+- Passwords hashed in `pre("save")` hook with bcryptjs
+- Refs use `mongoose.Schema.Types.ObjectId` with `ref: "ModelName"`
+- Subdocuments for embedded arrays (e.g., attendees in Event, timeline in Decision)
+
+## API Route Prefix
+
+All routes mounted under `/api/`:
+- `/api/auth` — login, register, me
+- `/api/events` — CRUD + checkin
+- `/api/members` — list, count, status change
+- `/api/decisions` — CRUD with filters
+- `/api/strikes` — list, member strikes, summary, assign
+- `/api/candidates` — list, submit (multipart), approve, reject
+
+## Auth Flow
+
+1. Client sends `POST /api/auth/login` with email + password
+2. Server returns `{ token, user }` — JWT valid for 7 days
+3. Client stores token in localStorage, attaches via axios interceptor
+4. All protected routes use `auth` middleware → sets `req.user`
+5. Role-restricted routes add `roleGuard(...)` after `auth`

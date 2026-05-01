@@ -1,0 +1,39 @@
+---
+description: Shadcn UI component usage rules for this project
+globs: client/src/components/**/*.jsx
+alwaysApply: false
+---
+
+# Shadcn UI Usage
+
+## Available Primitives (in `client/src/components/ui/`)
+
+Button, Input, Label, Card, Badge, Dialog, Select, Tabs, Table, Alert Dialog, Sheet, Separator, Textarea, Skeleton
+
+## Import Pattern
+
+```jsx
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+```
+
+## Custom Variants
+
+Badge has extra variants beyond Shadcn defaults: `success`, `warning`, `danger`
+
+```jsx
+<Badge variant="success">Active</Badge>
+<Badge variant="warning">Warning</Badge>
+<Badge variant="danger">Inactive</Badge>
+```
+
+## Sheets vs Dialogs
+
+- **Sheet** — side panel for detail views (MemberDetail, EventDetail, DecisionDetail, CandidateReview)
+- **Dialog** — centered modal for create/edit forms and confirmations
+
+## Do NOT
+
+- Install new Shadcn components without adding them to `client/src/components/ui/`
+- Use TypeScript syntax in UI components — this is a JSX-only project
+- Use inline styles — always use Tailwind classes
