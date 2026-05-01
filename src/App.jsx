@@ -11,6 +11,7 @@ import Members from "@/pages/Members";
 import Career from "@/pages/Career";
 import Admin from "@/pages/Admin";
 import Reports from "@/pages/Reports";
+import GenerateReport from "@/pages/GenerateReport";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -18,6 +19,7 @@ import {
   Briefcase,
   Shield,
   FileText,
+  FileBarChart,
   LogOut,
   Menu,
   X,
@@ -33,6 +35,7 @@ const navItems = [
   { path: "/reports", label: "Decisions", icon: FileText },
   { path: "/career", label: "Career", icon: Briefcase },
   { path: "/admin", label: "Admin", icon: Shield, roles: ["president", "pm", "mc"] },
+  { path: "/generate-report", label: "Annual Report", icon: FileBarChart, roles: ["president", "vice_president"] },
 ];
 
 function Sidebar({ user, onLogout }) {
@@ -126,6 +129,11 @@ function AppLayout() {
           <Route path="/admin" element={
             <RoleGate allowedRoles={["president", "pm", "mc"]} fallback={<Navigate to="/" />}>
               <Admin />
+            </RoleGate>
+          } />
+          <Route path="/generate-report" element={
+            <RoleGate allowedRoles={["president", "vice_president"]} fallback={<Navigate to="/" />}>
+              <GenerateReport />
             </RoleGate>
           } />
           <Route path="*" element={<Navigate to="/" />} />

@@ -20,6 +20,7 @@ import candidateRoutes from "./routes/candidates.js";
 import projectRoutes from "./routes/projects.js";
 import leadershipComplianceRoutes from "./routes/leadership-compliance.js";
 import summerProjectRoutes from "./routes/summer-projects.js";
+import reportRoutes from "./routes/reports.js";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/api/candidates", candidateRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/leadership-compliance", leadershipComplianceRoutes);
 app.use("/api/summer-projects", summerProjectRoutes);
+app.use("/api/reports", reportRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
