@@ -34,7 +34,7 @@ export default function CandidateList({ candidates, isLoading, showActions = fal
             <TableCell>
               {c.portfolioUrl ? (
                 <Button variant="ghost" size="sm" asChild onClick={(e) => e.stopPropagation()}>
-                  <a href={`/${c.portfolioUrl}`} target="_blank" rel="noopener noreferrer">
+                  <a href={c.portfolioUrl.startsWith("http") ? c.portfolioUrl : `/${c.portfolioUrl}`} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-1 h-3 w-3" /> View
                   </a>
                 </Button>

@@ -162,7 +162,7 @@ export const submitReport = async (req, res) => {
 
     const { semester, reportTitle, description, summary, notes, evidenceUrl } = req.body;
     const normalizedDescription = String(description || summary || "").trim();
-    const fileUrl = req.file?.filename ? `uploads/${req.file.filename}` : "";
+    const fileUrl = req.file?.path || "";
 
     if (!fileUrl) {
       return res.status(400).json({ message: "A PDF report file is required" });
