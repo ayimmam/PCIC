@@ -11,6 +11,9 @@ import Members from "@/pages/Members";
 import Career from "@/pages/Career";
 import Admin from "@/pages/Admin";
 import Reports from "@/pages/Reports";
+import ProjectMetricLog from "@/pages/ProjectMetricLog";
+import LeadershipCompliance from "@/pages/LeadershipCompliance";
+import SummerProject from "@/pages/SummerProject";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -18,9 +21,12 @@ import {
   Briefcase,
   Shield,
   FileText,
+  FolderKanban,
   LogOut,
   Menu,
   X,
+  CloudRain,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -31,7 +37,20 @@ const navItems = [
   { path: "/events", label: "Events", icon: CalendarDays },
   { path: "/members", label: "Members", icon: Users },
   { path: "/reports", label: "Decisions", icon: FileText },
+  {
+    path: "/leadership-compliance",
+    label: "Compliance",
+    icon: ClipboardCheck,
+    roles: ["president", "vice_president", "domain_leader"],
+  },
   { path: "/career", label: "Career", icon: Briefcase },
+  { path: "/projects", label: "Projects", icon: FolderKanban, batches: ["batch_2", "batch_3"], roles: ["pm"] },
+  {
+    path: "/summer-project",
+    label: "Summer project",
+    icon: CloudRain,
+    visible: (u) => u?.role === "domain_leader" || u?.role === "member",
+  },
   { path: "/admin", label: "Admin", icon: Shield, roles: ["president", "pm", "mc"] },
 ];
 
@@ -61,16 +80,18 @@ function Sidebar({ user, onLogout }) {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center gap-2 border-b px-6">
-          <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-            PC
+        <div className="flex h-16 items-center border-b px-6">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-primary text-[15px] font-bold leading-none tracking-tight text-primary-foreground">
+            PCIC
           </div>
-          <span className="font-semibold">PCIC</span>
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
           {navItems.map((item) => {
-            if (item.roles && !item.roles.includes(user?.role)) return null;
+            if (item.visible && !item.visible(user)) return null;
+            const roleOk = item.roles && item.roles.includes(user?.role);
+            const batchOk = item.batches && item.batches.includes(user?.batch);
+            if ((item.roles || item.batches) && !roleOk && !batchOk) return null;
             const isActive = location.pathname === item.path;
             return (
               <Link
@@ -122,7 +143,10 @@ function AppLayout() {
           <Route path="/events" element={<Events />} />
           <Route path="/members" element={<Members />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/leadership-compliance" element={<LeadershipCompliance />} />
           <Route path="/career" element={<Career />} />
+          <Route path="/projects" element={<ProjectMetricLog />} />
+          <Route path="/summer-project" element={<SummerProject />} />
           <Route path="/admin" element={
             <RoleGate allowedRoles={["president", "pm", "mc"]} fallback={<Navigate to="/" />}>
               <Admin />

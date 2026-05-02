@@ -76,3 +76,29 @@ export const sendPromotionRequestEmail = async (presidentEmail, memberName, curr
 
   await transporter.sendMail(mailOptions);
 };
+
+export const sendStrikeEmail = async (memberEmail, memberName, reason, totalStrikes) => {
+  if (!process.env.SMTP_USER) {
+    console.log(`[Email Skipped] Would notify ${memberName} about strike: ${reason}`);
+    return;
+  }
+
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to: memberEmail,
+    subject: "PCIC - Disciplinary Strike Notice",
+    html: `
+      <h2>Disciplinary Strike Notice</h2>
+      <p>Dear ${memberName},</p>
+      <p>You have been assigned a disciplinary strike for the following reason:</p>
+      <blockquote style="border-left: 4px solid #cc0000; padding-left: 10px; margin-left: 0;">
+        ${reason}
+      </blockquote>
+      <p>Your current total strike count is: <strong>${totalStrikes}</strong></p>
+      ${totalStrikes >= 3 ? "<p><strong>Because you have reached 3 strikes, your membership status is now suspended. Please contact leadership immediately.</strong></p>" : "<p>Please ensure you adhere to the community guidelines. Reaching 3 strikes will result in suspension.</p>"}
+      <p>Regards,<br/>PCIC Management System</p>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};

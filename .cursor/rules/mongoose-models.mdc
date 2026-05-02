@@ -9,9 +9,9 @@ alwaysApply: false
 ## Existing Models
 
 **User** — `name, email, password, role, batch, domain, status`
-- role: president | pm | mc | domain_leader | member
+- role: president | vice_president | secretary | pm | pr | mc | event_organizer | domain_leader | member
 - batch: batch_1 | batch_2 | batch_3
-- domain: T&G | Technical | Events | Marketing | Finance | General
+- domain (PCIC domain only): Code Crafters | Turing Tribe | Cyber Crew | Pixel Peeps
 - status: active | warning | inactive
 
 **Event** — `title, description, date, domain, capacity, createdBy, attendees[]`

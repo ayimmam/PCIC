@@ -1,0 +1,68 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/api/axios";
+
+export function useMembers(filters = {}, options = {}) {
+  return useQuery({
+    queryKey: ["members", filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.domain) params.set("domain", filters.domain);
+      if (filters.batch) params.set("batch", filters.batch);
+      if (filters.status) params.set("status", filters.status);
+      if (filters.role) params.set("role", filters.role);
+      if (filters.search) params.set("search", filters.search);
+      const { data } = await api.get(`/members?${params}`);
+      return data;
+    },
+    ...options,
+  });
+}
+
+export function useMemberCount() {
+  return useQuery({
+    queryKey: ["members", "count"],
+    queryFn: async () => {
+      const { data } = await api.get("/members/count");
+      return data;
+    },
+  });
+}
+
+export function useUpdateMemberStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }) => {
+      const { data } = await api.put(`/members/${id}/status`, { status });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}
+
+export function useUpdateMemberBatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, batch }) => {
+      const { data } = await api.put(`/members/${id}/batch`, { batch });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}
+
+export function useDismissMemberFlag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }) => {
+      const { data } = await api.put(`/members/${id}/flag/dismiss`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}

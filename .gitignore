@@ -11,5 +11,7 @@ uploads/
 
 # Cursor user-specific (don't track plans, they're personal)
 .cursor/plans/
+.cursor/debug*.log
 
 # Keep .cursor/rules/ and .cursor/skills/ tracked (they're project config)
+node_modules/

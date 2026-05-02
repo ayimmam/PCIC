@@ -44,3 +44,29 @@ export function useAssignStrike() {
     },
   });
 }
+
+export function useRequestDeleteStrike() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (strikeId) => {
+      const { data } = await api.put(`/strikes/${strikeId}/request-delete`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["strikes"] });
+    },
+  });
+}
+
+export function useApproveDeleteStrike() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (strikeId) => {
+      const { data } = await api.delete(`/strikes/${strikeId}`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["strikes"] });
+    },
+  });
+}

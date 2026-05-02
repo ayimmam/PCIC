@@ -1,19 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
-
-const DOMAINS = [
-  "T&G",
-  "Technical",
-  "Events",
-  "Marketing",
-  "Finance",
-  "General",
-  "Code Crafters",
-  "Turing Tribe",
-  "Cyber Crew",
-  "Pixel Peeps",
-];
+import { PCIC_DOMAINS } from "@/lib/pcicDomains";
 const BATCHES = [
   { value: "batch_1", label: "Batch 1" },
   { value: "batch_2", label: "Batch 2" },
@@ -43,7 +31,11 @@ export default function MemberFilters({ filters, onChange }) {
         <SelectTrigger className="w-40"><SelectValue placeholder="Domain" /></SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All domains</SelectItem>
-          {DOMAINS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+          {PCIC_DOMAINS.map((d) => (
+            <SelectItem key={d} value={d}>
+              {d}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
       <Select value={filters.batch || ""} onValueChange={(v) => update("batch", v)}>

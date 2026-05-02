@@ -48,7 +48,9 @@ export const register = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    res.json({ user: req.user });
+    const userObj = typeof req.user.toObject === "function" ? req.user.toObject() : { ...req.user };
+    delete userObj.password;
+    res.json({ user: userObj });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
