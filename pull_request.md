@@ -1,27 +1,22 @@
 ## Summary
 
-This PR implements the Disciplinary Strike System with threshold flagging for the PCIC management system. It introduces the ability for authorized leaders to issue strikes to members, track strike history, and automatically flag members who cross specific disciplinary thresholds.
+This PR finalizes the project migration and split deployment (GitHub Pages + Vercel). It includes critical resilience fixes for Vercel serverless functions to prevent startup crashes and adds explicit environment variable validation for easier debugging.
 
 ## Changes
 
-- [x] Frontend changes
-- [x] Backend changes
-- [x] New API endpoints
-- [x] Database model changes
+- [x] **Serverless Resilience**: Removed `process.exit(1)` from the database connection logic to prevent Vercel functions from crashing on startup.
+- [x] **Environment Validation**: Added explicit logging for missing `MONGODB_URI` and `JWT_SECRET` variables to provide clear feedback in Vercel logs.
+- [x] **Split Deployment**: Finalized the cross-domain configuration between GitHub Pages (`pcic.tech`) and the Vercel backend.
 
 ## Related Issue
 
-<!-- Link to issue, e.g. Closes #12 -->
+Resolves Vercel `FUNCTION_INVOCATION_FAILED` errors and completes migration; Closes #final-migration-fix
 
 ## How to Test
 
-1. Log in as an administrator (President/Vice President).
-2. Navigate to the Members page and select a member to view their detail page.
-3. Click on the "Assign Strike" button and fill out the strike form (reason, severity).
-4. Verify that the strike appears in the member's Strike History tab.
-5. Search and filter strikes using the new Strike Search feature.
-6. Verify access controls (ensuring non-leadership roles bypass or are denied strike creation).
-7. Check the strike thresholds logic ensuring a member gets properly flagged when exceeding predefined limits.
+1. **Frontend**: Verify that the live site on GitHub Pages continues to call the Vercel API.
+2. **Backend**: Access `/api/health`. If variables are missing, the Vercel Logs will now accurately report the missing keys instead of showing a generic crash page.
+3. **Vercel Settings**: Ensure **Root Directory** is set to `server` and all `.env` variables are added to the Vercel dashboard.
 
 ## Screenshots (if UI changes)
 

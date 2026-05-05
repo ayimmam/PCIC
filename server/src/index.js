@@ -30,10 +30,18 @@ import reportRoutes from "./routes/reports.js";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
+// Validation for critical environment variables in production/serverless
+if (!process.env.MONGODB_URI) {
+  console.error("CRITICAL ERROR: MONGODB_URI is not defined. Please add it to your Vercel Environment Variables.");
+}
+if (!process.env.JWT_SECRET) {
+  console.error("CRITICAL ERROR: JWT_SECRET is not defined. Please add it to your Vercel Environment Variables.");
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors()); // Use permissive CORS to resolve the preflight 404 issue
 app.use(express.json());
 app.use("/uploads", express.static(UPLOAD_DIR));
 
