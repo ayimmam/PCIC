@@ -1,23 +1,22 @@
 ## Summary
 
-This PR resolves the 404 deployment issue on Vercel by implementing a root-level `vercel.json` for monorepo routing and improving backend environment stability.
+This PR finalizes the split deployment architecture for the PCIC Management System. It reconfigures the frontend (GitHub Pages) to communicate with the migrated backend on Vercel using a cross-domain API setup.
 
 ## Changes
 
-- [ ] Frontend changes
-- [x] Backend changes: Exported `app` instance, fixed `.env` absolute path resolution, and added root `vercel.json`.
-- [x] Infrastructure: Fixed missing `multer-storage-cloudinary` dependency in `package.json`.
-- [ ] Database model changes
+- [x] Frontend changes: Updated `axios` base URLs in both root and client directories to point to the live Vercel backend.
+- [x] Backend changes: Restored `server/vercel.json` for backend-only hosting and optimized environment variable pathing.
+- [x] Infrastructure: Ensured all Vercel-specific dependencies (`multer-storage-cloudinary`, etc.) are correctly listed.
 
 ## Related Issue
 
-Fixes Vercel 404 deployment errors.
+Resolves 404 deployment errors and aligns cross-domain connectivity; Closes #split-deployment-setup
 
 ## How to Test
 
-1. **Local Backend Build**: Run `node server/src/index.js` from the project root. Verify it successfully connects to MongoDB (fixes the "uri must be a string" error).
-2. **Frontend Build**: Run `npm run build` at the project root to verify the Vite production build.
-3. **Deployment Ready**: Verify `vercel.json` exists at the root with correct rewrites for `/api/*`.
+1. **Frontend**: Verify that API calls are directed to `https://pcic-hpw7.vercel.app/api` by checking the network tab on the live GitHub Pages site.
+2. **Backend**: Confirm that the Vercel backend is accessible via `/api/health`.
+3. **Vercel Settings**: Ensure the **Root Directory** in Vercel project settings is set to `server`.
 
 ## Screenshots (if UI changes)
 
