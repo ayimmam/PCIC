@@ -28,7 +28,7 @@ import leadershipComplianceRoutes from "./routes/leadership-compliance.js";
 import summerProjectRoutes from "./routes/summer-projects.js";
 import reportRoutes from "./routes/reports.js";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
