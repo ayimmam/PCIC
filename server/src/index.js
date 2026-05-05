@@ -10,7 +10,13 @@ import { UPLOAD_DIR } from "./utils/upload.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 void __dirname;
-mkdirSync(UPLOAD_DIR, { recursive: true });
+try {
+  mkdirSync(UPLOAD_DIR, { recursive: true });
+} catch (err) {
+  // Gracefully handle read-only filesystems (like Vercel functions)
+  console.log("Note: Upload directory creation skipped (expected in serverless environments)");
+}
+
 import authRoutes from "./routes/auth.js";
 import eventRoutes from "./routes/events.js";
 import memberRoutes from "./routes/members.js";
@@ -43,11 +49,18 @@ app.use("/api/summer-projects", summerProjectRoutes);
 app.use("/api/reports", reportRoutes);
 
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({ status: "ok", environment: process.env.NODE_ENV || "development" });
 });
 
+// For Vercel: Export the app as default
+export default app;
+
+// Establish DB connection
 connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  // Only start listener if not in production/Vercel
+  if (process.env.NODE_ENV !== "production") {
+    app.listen(PORT, () => {
+      console.log(`Server running locally on port ${PORT}`);
+    });
+  }
 });
