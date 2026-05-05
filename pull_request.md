@@ -1,22 +1,22 @@
 ## Summary
 
-This PR finalizes the split deployment architecture for the PCIC Management System. It reconfigures the frontend (GitHub Pages) to communicate with the migrated backend on Vercel using a cross-domain API setup.
+This PR finalizes the project migration and split deployment (GitHub Pages + Vercel). It includes critical resilience fixes for Vercel serverless functions to prevent startup crashes and adds explicit environment variable validation for easier debugging.
 
 ## Changes
 
-- [x] Frontend changes: Updated `axios` base URLs in both root and client directories to point to the live Vercel backend.
-- [x] Backend changes: Restored `server/vercel.json` for backend-only hosting and optimized environment variable pathing.
-- [x] Infrastructure: Ensured all Vercel-specific dependencies (`multer-storage-cloudinary`, etc.) are correctly listed.
+- [x] **Serverless Resilience**: Removed `process.exit(1)` from the database connection logic to prevent Vercel functions from crashing on startup.
+- [x] **Environment Validation**: Added explicit logging for missing `MONGODB_URI` and `JWT_SECRET` variables to provide clear feedback in Vercel logs.
+- [x] **Split Deployment**: Finalized the cross-domain configuration between GitHub Pages (`pcic.tech`) and the Vercel backend.
 
 ## Related Issue
 
-Resolves 404 deployment errors and aligns cross-domain connectivity; Closes #split-deployment-setup
+Resolves Vercel `FUNCTION_INVOCATION_FAILED` errors and completes migration; Closes #final-migration-fix
 
 ## How to Test
 
-1. **Frontend**: Verify that API calls are directed to `https://pcic-hpw7.vercel.app/api` by checking the network tab on the live GitHub Pages site.
-2. **Backend**: Confirm that the Vercel backend is accessible via `/api/health`.
-3. **Vercel Settings**: Ensure the **Root Directory** in Vercel project settings is set to `server`.
+1. **Frontend**: Verify that the live site on GitHub Pages continues to call the Vercel API.
+2. **Backend**: Access `/api/health`. If variables are missing, the Vercel Logs will now accurately report the missing keys instead of showing a generic crash page.
+3. **Vercel Settings**: Ensure **Root Directory** is set to `server` and all `.env` variables are added to the Vercel dashboard.
 
 ## Screenshots (if UI changes)
 
