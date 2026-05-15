@@ -27,6 +27,7 @@ import projectRoutes from "./routes/projects.js";
 import leadershipComplianceRoutes from "./routes/leadership-compliance.js";
 import summerProjectRoutes from "./routes/summer-projects.js";
 import reportRoutes from "./routes/reports.js";
+import peakProjectRoutes from "./routes/peak-projects.js";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
@@ -55,6 +56,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/leadership-compliance", leadershipComplianceRoutes);
 app.use("/api/summer-projects", summerProjectRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/peak-projects", peakProjectRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", environment: process.env.NODE_ENV || "development" });
@@ -65,8 +67,8 @@ export default app;
 
 // Establish DB connection
 connectDB().then(() => {
-  // Only start listener if not in production/Vercel
-  if (process.env.NODE_ENV !== "production") {
+  // Only start listener if not in production/Vercel/test
+  if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
     app.listen(PORT, () => {
       console.log(`Server running locally on port ${PORT}`);
     });
