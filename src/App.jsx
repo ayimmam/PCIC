@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
 import RoleGate from "@/components/shared/RoleGate";
 import Login from "@/pages/Login";
+import PeakProjects from "@/pages/PeakProjects";
 import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
 import Members from "@/pages/Members";
@@ -147,6 +148,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/peak-projects" element={<PeakProjects />} />
       <Route
         path="/*"
         element={
