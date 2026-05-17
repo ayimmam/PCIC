@@ -407,7 +407,7 @@ export default function PeakProjects() {
             </div>
           </div>
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground/80">
-            Explore the portfolio of projects created by 30+ students across
+            Explore the portfolio of projects created by 80+ members across
             Information Systems, Computer Science, and Information Technology at
             Hawassa University. Leave feedback or report bugs on any project.
           </p>

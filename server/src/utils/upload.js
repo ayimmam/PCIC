@@ -1,13 +1,7 @@
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from "url";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// Keeping UPLOAD_DIR exported so index.js can still statically serve seeded dummy files
-export const UPLOAD_DIR = path.resolve(__dirname, "../../uploads");
 
 // The .env may store the full cloudinary:// URL in CLOUDINARY_API_KEY.
 // Extract the numeric key from it if so.
