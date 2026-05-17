@@ -1,21 +1,12 @@
-import { mkdirSync } from "fs";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
-import { UPLOAD_DIR } from "./utils/upload.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-void __dirname;
-try {
-  mkdirSync(UPLOAD_DIR, { recursive: true });
-} catch (err) {
-  // Gracefully handle read-only filesystems (like Vercel functions)
-  console.log("Note: Upload directory creation skipped (expected in serverless environments)");
-}
 
 import authRoutes from "./routes/auth.js";
 import eventRoutes from "./routes/events.js";
@@ -44,7 +35,6 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors()); // Use permissive CORS to resolve the preflight 404 issue
 app.use(express.json());
-app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
