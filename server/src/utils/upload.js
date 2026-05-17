@@ -9,11 +9,16 @@ const __dirname = path.dirname(__filename);
 // Keeping UPLOAD_DIR exported so index.js can still statically serve seeded dummy files
 export const UPLOAD_DIR = path.resolve(__dirname, "../../uploads");
 
-// Cloudinary config is automatically picked up from CLOUDINARY_URL or via config()
-// if environment variables are set in .env
+// The .env may store the full cloudinary:// URL in CLOUDINARY_API_KEY.
+// Extract the numeric key from it if so.
+let cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || "";
+if (cloudinaryApiKey.startsWith("cloudinary://")) {
+  cloudinaryApiKey = cloudinaryApiKey.replace("cloudinary://", "").split(":")[0];
+}
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
+  api_key: cloudinaryApiKey,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
