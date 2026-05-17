@@ -24,7 +24,7 @@ import {
   ChevronDown,
   ChevronUp,
   Send,
-  Rocket,
+  FileText,
   ArrowLeft,
 } from "lucide-react";
 
@@ -36,6 +36,7 @@ const PROJECTS = [
       "A full-stack machine learning solution designed to help businesses identify and retain at-risk customers using baseline ML models and an interactive dashboard.",
     tech: ["React", "Python", "Docker"],
     link: null,
+    charter: "https://res.cloudinary.com/dpvavfbuu/image/upload/v1779018526/Telecom_Customer_Churn_Prediction_Insights_Project_Charter_urdhqk.pdf",
   },
   {
     slug: "smart-resume-matching",
@@ -44,6 +45,7 @@ const PROJECTS = [
       'A secure, centralized platform that automates resume parsing and evaluation, providing "Match Scores" and skill-gap suggestions for PCIC members.',
     tech: ["React", "Node.js", "Docker"],
     link: "https://smart-resume-job-matching-system.vercel.app",
+    charter: "https://res.cloudinary.com/dpvavfbuu/image/upload/v1779018526/Smart_Resume_-_Job_Matching_Project_Charter_i17uiu.pdf",
   },
   {
     slug: "internship-readiness",
@@ -52,6 +54,7 @@ const PROJECTS = [
       "A data-driven platform evaluating student preparedness via NLP skill extraction and ML classifiers, providing personalized recommendations via a dashboard.",
     tech: ["Python", "React", "Node.js"],
     link: "https://internship-readiness-platform.vercel.app/",
+    charter: "https://res.cloudinary.com/dpvavfbuu/image/upload/v1779018526/Internship_Readiness_Assessment_Recommendation_System_-_Project_Charter_arlgnf.pdf",
   },
   {
     slug: "group-assignment-coordination",
@@ -60,6 +63,7 @@ const PROJECTS = [
       "A web application that automates fair student group allocations using randomization logic and role-based access to improve academic accountability.",
     tech: ["React", "Node.js", "MySQL"],
     link: "https://gacs-theta.vercel.app",
+    charter: "https://res.cloudinary.com/dpvavfbuu/image/upload/v1779018526/Group_Assignment_Coordination_System_-_Project_Charter_enkkfy.pdf",
   },
   {
     slug: "campus-event-rsvp",
@@ -68,6 +72,7 @@ const PROJECTS = [
       "A centralized platform for managing event lifecycles, RSVP limits, and attendance validation via QR codes to replace manual spreadsheet tracking.",
     tech: ["React", "Node.js", "MySQL"],
     link: "https://campus-event-rsvp-tracker.vercel.app",
+    charter: "https://res.cloudinary.com/dpvavfbuu/image/upload/v1779018528/Campus_event_RSVP_Project_Charter_jwv0ps.pdf",
   },
   {
     slug: "pcic-lms",
@@ -76,6 +81,7 @@ const PROJECTS = [
       "A lightweight management system for monitoring student progress with centralized dashboards, automated tracking, and exportable analytics.",
     tech: ["React", "PHP", "MySQL"],
     link: "http://vpms-hawassaa.infinityfreeapp.com/",
+    charter: "https://res.cloudinary.com/dpvavfbuu/image/upload/v1779018986/LMS_Project_Charter_wju1hc.pdf",
   },
   {
     slug: "fault-reporting",
@@ -84,6 +90,7 @@ const PROJECTS = [
       "A decentralized maintenance solution for the IoT campus allowing users to report infrastructure faults with GPS location and photo evidence.",
     tech: ["Flutter", "Google Maps API", "Supabase"],
     link: null,
+    charter: "https://res.cloudinary.com/dpvavfbuu/image/upload/v1779018526/Fault_Reporting_System_-_Project_Charter_veioyq.pdf",
   },
   {
     slug: "pcic-management-system",
@@ -92,6 +99,7 @@ const PROJECTS = [
       "An internal platform automating workflows for membership, leadership decision logging, and academic quality metrics with role-based security.",
     tech: ["React", "Node.js", "MongoDB"],
     link: "https://pcic.tech",
+    charter: "https://res.cloudinary.com/dpvavfbuu/image/upload/v1779019335/PCIC_Internal_Managment_Tool_Charter_bhxzby.pdf",
   },
 ];
 
@@ -169,7 +177,7 @@ function CommentSection({ slug }) {
         <div className="mt-3 space-y-4 rounded-lg border bg-muted/30 p-4">
           {/* Comment form */}
           <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label htmlFor={`name-${slug}`} className="text-xs">
                   Your Name
@@ -193,10 +201,10 @@ function CommentSection({ slug }) {
                     id={`type-comment-${slug}`}
                     variant={type === "comment" ? "default" : "outline"}
                     size="sm"
-                    className="flex-1 gap-1.5"
+                    className="flex-1 gap-1.5 text-xs"
                     onClick={() => setType("comment")}
                   >
-                    <MessageSquare className="h-3.5 w-3.5" />
+                    <MessageSquare className="h-3.5 w-3.5 shrink-0" />
                     Comment
                   </Button>
                   <Button
@@ -204,10 +212,10 @@ function CommentSection({ slug }) {
                     id={`type-bug-${slug}`}
                     variant={type === "bug" ? "destructive" : "outline"}
                     size="sm"
-                    className="flex-1 gap-1.5"
+                    className="flex-1 gap-1.5 text-xs"
                     onClick={() => setType("bug")}
                   >
-                    <Bug className="h-3.5 w-3.5" />
+                    <Bug className="h-3.5 w-3.5 shrink-0" />
                     Bug Report
                   </Button>
                 </div>
@@ -330,21 +338,35 @@ function ProjectCard({ project }) {
           ))}
         </div>
 
-        {/* Visit button */}
-        {project.link && (
-          <a
-            href={project.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            id={`visit-${project.slug}`}
-            className="mb-2"
-          >
-            <Button variant="outline" size="sm" className="w-full gap-2">
-              <ExternalLink className="h-3.5 w-3.5" />
-              Visit Project
-            </Button>
-          </a>
-        )}
+        {/* Action buttons */}
+        <div className="mb-2 flex flex-col gap-2">
+          {project.link && (
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              id={`visit-${project.slug}`}
+            >
+              <Button variant="outline" size="sm" className="w-full gap-2">
+                <ExternalLink className="h-3.5 w-3.5" />
+                Visit Project
+              </Button>
+            </a>
+          )}
+          {project.charter && (
+            <a
+              href={project.charter}
+              target="_blank"
+              rel="noopener noreferrer"
+              id={`charter-${project.slug}`}
+            >
+              <Button variant="outline" size="sm" className="w-full gap-2">
+                <FileText className="h-3.5 w-3.5" />
+                View Charter
+              </Button>
+            </a>
+          )}
+        </div>
 
         {/* Comments */}
         <CommentSection slug={project.slug} />
@@ -378,7 +400,6 @@ export default function PeakProjects() {
                 <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
                   Peak Projects
                 </span>
-                <Rocket className="ml-2 inline-block h-7 w-7 text-primary" />
               </h1>
               <p className="mt-1 text-muted-foreground sm:text-lg">
                 Community-built projects by the Peak Craft Informatics Community
