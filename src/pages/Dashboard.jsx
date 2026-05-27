@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays, Users, AlertTriangle, TrendingUp, FileText, ChevronRight } from "lucide-react";
 import { useEventCount } from "@/hooks/useEvents";
 import { useMemberCount } from "@/hooks/useMembers";
-import { useStrikeSummary } from "@/hooks/useStrikes";
+import { useStrikeSummary, useMemberStrikes } from "@/hooks/useStrikes";
 import { useMyTasks } from "@/hooks/useDecisions";
+import { useAuth } from "@/hooks/useAuth";
+import StrikeHistory from "@/components/strikes/StrikeHistory";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function StatCard({ title, value, description, icon: Icon, isLoading }) {
@@ -31,10 +33,12 @@ function StatCard({ title, value, description, icon: Icon, isLoading }) {
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const { data: eventCount, isLoading: eventsLoading } = useEventCount();
   const { data: memberCount, isLoading: membersLoading } = useMemberCount();
   const { data: strikeSummary, isLoading: strikesLoading } = useStrikeSummary();
   const { data: myTasks = [], isLoading: tasksLoading } = useMyTasks();
+  const { data: myStrikes = [], isLoading: myStrikesLoading } = useMemberStrikes(user?._id);
 
   const latestReportedLabel = eventCount?.latestReportedEvent
     ? `${eventCount.latestReportedEvent.title} (${eventCount.latestReportedEvent.reportedAttendeeCount})`
@@ -135,6 +139,22 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-4 w-4" /> My Disciplinary Records
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">{myStrikes.length} strikes assigned to you</p>
+          </CardHeader>
+          <CardContent>
+            {myStrikesLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : (
+              <StrikeHistory strikes={myStrikes} />
+            )}
+          </CardContent>
+        </Card>
 
       <Card>
         <CardHeader>

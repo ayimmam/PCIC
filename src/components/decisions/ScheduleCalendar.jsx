@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useDecisions } from "@/hooks/useDecisions";
+import { useProjects } from "@/hooks/useProjects";
 
 function dayHasDecision(day, decision) {
   const start = decision.startDate ? new Date(decision.startDate) : null;
@@ -35,6 +36,7 @@ export default function ScheduleCalendar() {
   // Load all decisions; we filter by date locally for both
   // exam/holiday schedules and action-item due dates.
   const { data: decisions = [], isLoading } = useDecisions();
+  const { data: projects = [] } = useProjects();
 
   const scheduleDecisions = decisions.filter(
     (d) =>
@@ -112,6 +114,9 @@ export default function ScheduleCalendar() {
               const dayTasks = actionTasks.filter(
                 (t) => t.dueDate && isSameDay(day, new Date(t.dueDate))
               );
+              const dayProjects = projects.filter(
+                (p) => p.deadline && isSameDay(day, new Date(p.deadline))
+              );
               return (
                 <div
                   key={i}
@@ -162,6 +167,19 @@ export default function ScheduleCalendar() {
                           +{dayTasks.length - 3}
                         </span>
                       )}
+                    </div>
+                  )}
+                  {dayProjects.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {dayProjects.map((p) => (
+                        <div
+                          key={p._id}
+                          className="truncate rounded px-1 py-0.5 text-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                          title={`Project deadline: ${p.title}`}
+                        >
+                          📋 {p.title}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

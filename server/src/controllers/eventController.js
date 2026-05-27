@@ -115,7 +115,13 @@ export const createEvent = async (req, res) => {
 
 export const updateEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
+    const allowedFields = ["title", "description", "date", "domain", "capacity", "reportedAttendeeCount"];
+    const updates = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) updates[key] = req.body[key];
+    }
+
+    const event = await Event.findByIdAndUpdate(req.params.id, updates, {
       new: true,
       runValidators: true,
     });

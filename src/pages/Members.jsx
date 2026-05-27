@@ -3,25 +3,21 @@ import PageHeader from "@/components/shared/PageHeader";
 import MemberTable from "@/components/members/MemberTable";
 import MemberFilters from "@/components/members/MemberFilters";
 import MemberDetail from "@/components/members/MemberDetail";
-import AssignStrikeDialog from "@/components/strikes/AssignStrikeDialog";
 import CandidateReview from "@/components/candidates/CandidateReview";
+import AssignStrikeDialog from "@/components/strikes/AssignStrikeDialog";
 import { useMembers } from "@/hooks/useMembers";
 import { useStrikes } from "@/hooks/useStrikes";
 import { useCandidates } from "@/hooks/useCandidates";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isMemberFlagged, STRIKE_THRESHOLD } from "@/lib/strikePolicy";
 
 export default function Members() {
-  const [filters, setFilters] = useState({ search: "", domain: "", batch: "", status: "", role: "" });
-  const [memberView, setMemberView] = useState("all");
+  const [filters, setFilters] = useState({ search: "", domain: "", batch: "", status: "" });
   const [selectedMember, setSelectedMember] = useState(null);
-  const [strikeMember, setStrikeMember] = useState(null);
+  const [assignStrikeMember, setAssignStrikeMember] = useState(null);
   const [reviewCandidate, setReviewCandidate] = useState(null);
   const { user } = useAuth();
-  const canAssignStrikes = ["president", "pm", "mc"].includes(user?.role);
 
   const activeFilters = Object.fromEntries(
     Object.entries(filters).filter(([, v]) => v)
@@ -40,27 +36,6 @@ export default function Members() {
     }, {});
   }, [strikes]);
 
-  const membersWithStrikeMeta = useMemo(() => {
-    if (!members) return [];
-    return members.map((member) => {
-      const strikeCount = strikeCounts[member._id] || 0;
-      return {
-        ...member,
-        strikeCount,
-        isFlagged: isMemberFlagged(member, strikeCount),
-      };
-    });
-  }, [members, strikeCounts]);
-
-  const flaggedMembers = useMemo(() => {
-    return membersWithStrikeMeta.filter((member) => member.isFlagged);
-  }, [membersWithStrikeMeta]);
-
-  const visibleMembers = useMemo(() => {
-    if (memberView === "flagged") return flaggedMembers;
-    return membersWithStrikeMeta;
-  }, [memberView, flaggedMembers, membersWithStrikeMeta]);
-
   const memberCandidate = useMemo(() => {
     if (!user || !candidates) return null;
     return candidates.find((c) => c.member === user._id || c.email === user.email);
@@ -74,15 +49,6 @@ export default function Members() {
   return (
     <div className="space-y-6">
       <PageHeader title="Members" subtitle="Manage community members and their status" />
-
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-3 text-sm">
-        <Badge variant="danger">Threshold: {STRIKE_THRESHOLD} strikes</Badge>
-        <span className="text-muted-foreground">
-          Members crossing this threshold are automatically marked as
-        </span>
-        <Badge variant="warning">Pending Demotion Review</Badge>
-        <Badge variant="outline">Flagged: {flaggedMembers.length}</Badge>
-      </div>
 
       <div className="space-y-3">
         {memberCandidate && (
@@ -139,48 +105,27 @@ export default function Members() {
         )}
       </div>
       <MemberFilters filters={filters} onChange={setFilters} />
-
-      <Tabs value={memberView} onValueChange={setMemberView}>
-        <TabsList>
-          <TabsTrigger value="all">All Members ({membersWithStrikeMeta.length})</TabsTrigger>
-          <TabsTrigger value="flagged">Flagged ({flaggedMembers.length})</TabsTrigger>
-        </TabsList>
-        <TabsContent value="all" className="mt-4">
-          <MemberTable
-            members={visibleMembers}
-            isLoading={isLoading}
-            strikeCounts={strikeCounts}
-            onRowClick={setSelectedMember}
-            canAssignStrikes={canAssignStrikes}
-            onStrikeClick={setStrikeMember}
-          />
-        </TabsContent>
-        <TabsContent value="flagged" className="mt-4">
-          <MemberTable
-            members={visibleMembers}
-            isLoading={isLoading}
-            strikeCounts={strikeCounts}
-            onRowClick={setSelectedMember}
-            canAssignStrikes={canAssignStrikes}
-            onStrikeClick={setStrikeMember}
-          />
-        </TabsContent>
-      </Tabs>
-
+      <MemberTable
+        members={members}
+        isLoading={isLoading}
+        strikeCounts={strikeCounts}
+        onRowClick={setSelectedMember}
+        onAssignStrike={setAssignStrikeMember}
+      />
       <MemberDetail
         member={selectedMember}
         open={!!selectedMember}
         onOpenChange={(open) => !open && setSelectedMember(null)}
       />
-      <AssignStrikeDialog
-        member={strikeMember}
-        open={!!strikeMember}
-        onOpenChange={(open) => !open && setStrikeMember(null)}
-      />
       <CandidateReview
         candidate={reviewCandidate}
         open={!!reviewCandidate}
         onOpenChange={(open) => !open && setReviewCandidate(null)}
+      />
+      <AssignStrikeDialog
+        open={!!assignStrikeMember}
+        onOpenChange={(open) => !open && setAssignStrikeMember(null)}
+        member={assignStrikeMember}
       />
     </div>
   );

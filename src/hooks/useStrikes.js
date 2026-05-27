@@ -39,13 +39,34 @@ export function useAssignStrike() {
       const { data } = await api.post("/strikes", { memberId, reason });
       return data;
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["strikes"] });
-      qc.invalidateQueries({ queryKey: ["strikes", "summary"] });
-      qc.invalidateQueries({ queryKey: ["members"] });
-      if (variables?.memberId) {
-        qc.invalidateQueries({ queryKey: ["strikes", "member", variables.memberId] });
-      }
+    },
+  });
+}
+
+export function useRequestDeleteStrike() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (strikeId) => {
+      const { data } = await api.put(`/strikes/${strikeId}/request-delete`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["strikes"] });
+    },
+  });
+}
+
+export function useApproveDeleteStrike() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (strikeId) => {
+      const { data } = await api.delete(`/strikes/${strikeId}`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["strikes"] });
     },
   });
 }

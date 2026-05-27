@@ -2,6 +2,8 @@ import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyTasks } from "@/hooks/useDecisions";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
+import ProfileDropdown from "@/components/shared/ProfileDropdown";
+import WelcomeDialog from "@/components/shared/WelcomeDialog";
 import { Badge } from "@/components/ui/badge";
 import RoleGate from "@/components/shared/RoleGate";
 import Login from "@/pages/Login";
@@ -12,7 +14,9 @@ import Members from "@/pages/Members";
 import Career from "@/pages/Career";
 import Admin from "@/pages/Admin";
 import Reports from "@/pages/Reports";
-import GenerateReport from "@/pages/GenerateReport";
+import ProjectMetricLog from "@/pages/ProjectMetricLog";
+import LeadershipCompliance from "@/pages/LeadershipCompliance";
+import SummerProject from "@/pages/SummerProject";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -20,10 +24,12 @@ import {
   Briefcase,
   Shield,
   FileText,
-  FileBarChart,
+  FolderKanban,
   LogOut,
   Menu,
   X,
+  CloudRain,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -32,11 +38,23 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/events", label: "Events", icon: CalendarDays },
-  { path: "/members", label: "Members", icon: Users },
+  { path: "/members", label: "Members", icon: Users, roles: ["president", "vice_president", "pm", "mc", "domain_leader"] },
   { path: "/reports", label: "Decisions", icon: FileText },
-  { path: "/career", label: "Career", icon: Briefcase },
+  {
+    path: "/leadership-compliance",
+    label: "Compliance",
+    icon: ClipboardCheck,
+    roles: ["president", "vice_president", "domain_leader"],
+  },
+  { path: "/career", label: "Progression", icon: Briefcase },
+  { path: "/projects", label: "Projects", icon: FolderKanban, batches: ["batch_2", "batch_3"], roles: ["pm"] },
+  {
+    path: "/summer-project",
+    label: "Summer project",
+    icon: CloudRain,
+    visible: (u) => u?.role === "domain_leader" || u?.role === "member",
+  },
   { path: "/admin", label: "Admin", icon: Shield, roles: ["president", "pm", "mc"] },
-  { path: "/generate-report", label: "Annual Report", icon: FileBarChart, roles: ["president", "vice_president"] },
 ];
 
 function Sidebar({ user, onLogout }) {
@@ -65,16 +83,18 @@ function Sidebar({ user, onLogout }) {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center gap-2 border-b px-6">
-          <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-            PC
+        <div className="flex h-16 items-center border-b px-6">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-primary text-[15px] font-bold leading-none tracking-tight text-primary-foreground">
+            PCIC
           </div>
-          <span className="font-semibold">PCIC</span>
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
           {navItems.map((item) => {
-            if (item.roles && !item.roles.includes(user?.role)) return null;
+            if (item.visible && !item.visible(user)) return null;
+            const roleOk = item.roles && item.roles.includes(user?.role);
+            const batchOk = item.batches && item.batches.includes(user?.batch);
+            if ((item.roles || item.batches) && !roleOk && !batchOk) return null;
             const isActive = location.pathname === item.path;
             return (
               <Link
@@ -120,21 +140,30 @@ function AppLayout() {
   return (
     <div className="min-h-screen">
       <Sidebar user={user} onLogout={logout} />
-      <main className="p-6 pt-20 lg:ml-64 lg:pt-6">
+
+      {/* Top header bar with profile dropdown */}
+      <header className="fixed right-0 top-0 z-30 flex h-14 items-center justify-end gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:left-64">
+        <ProfileDropdown />
+      </header>
+
+      <main className="p-6 pt-20 lg:ml-64 lg:pt-20">
+        <WelcomeDialog />
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/members" element={<Members />} />
+          <Route path="/members" element={
+            <RoleGate allowedRoles={["president", "vice_president", "pm", "mc", "domain_leader"]} fallback={<Navigate to="/" />}>
+              <Members />
+            </RoleGate>
+          } />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/leadership-compliance" element={<LeadershipCompliance />} />
           <Route path="/career" element={<Career />} />
+          <Route path="/projects" element={<ProjectMetricLog />} />
+          <Route path="/summer-project" element={<SummerProject />} />
           <Route path="/admin" element={
             <RoleGate allowedRoles={["president", "pm", "mc"]} fallback={<Navigate to="/" />}>
               <Admin />
-            </RoleGate>
-          } />
-          <Route path="/generate-report" element={
-            <RoleGate allowedRoles={["president", "vice_president"]} fallback={<Navigate to="/" />}>
-              <GenerateReport />
             </RoleGate>
           } />
           <Route path="*" element={<Navigate to="/" />} />

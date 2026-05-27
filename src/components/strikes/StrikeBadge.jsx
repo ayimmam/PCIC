@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { STRIKE_THRESHOLD } from "@/lib/strikePolicy";
 
 const variants = {
   0: { variant: "success", label: "0 Strikes" },
@@ -9,7 +8,7 @@ const variants = {
 };
 
 export default function StrikeBadge({ count = 0 }) {
-  const capped = Math.min(count, STRIKE_THRESHOLD);
+  const capped = Math.min(count, 3);
   const config = variants[capped] || variants[3];
 
   return (

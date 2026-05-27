@@ -1,18 +1,24 @@
 import User from "../models/User.js";
+import Strike from "../models/Strike.js";
+import Event from "../models/Event.js";
 import { sendWarningEmail } from "../utils/email.js";
+
+/** Escape special regex characters to prevent ReDoS */
+const escapeRegex = (str) => String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const getMembers = async (req, res) => {
   try {
     const { domain, batch, status, search } = req.query;
     const filter = {};
 
-    if (domain) filter.domain = domain;
-    if (batch) filter.batch = batch;
-    if (status) filter.status = status;
+    if (domain) filter.domain = String(domain);
+    if (batch) filter.batch = String(batch);
+    if (status) filter.status = String(status);
     if (search) {
+      const escaped = escapeRegex(search);
       filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+        { name: { $regex: escaped, $options: "i" } },
+        { email: { $regex: escaped, $options: "i" } },
       ];
     }
 
@@ -109,3 +115,103 @@ export const updateMemberProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+/* ── Member self-service endpoints ─────────────────────────── */
+
+export const getMyProfile = async (req, res) => {
+  try {
+    const userObj = typeof req.user.toObject === "function" ? req.user.toObject() : { ...req.user };
+    delete userObj.password;
+    res.json(userObj);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getMyStrikes = async (req, res) => {
+  try {
+    const strikes = await Strike.find({ memberId: req.user._id })
+      .populate("assignedBy", "name")
+      .sort({ createdAt: -1 });
+    res.json(strikes);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getMyAttendance = async (req, res) => {
+  try {
+    const events = await Event.find({ "attendees.memberId": req.user._id })
+      .select("title date domain attendees")
+      .sort({ date: -1 });
+
+    const result = events.map((event) => {
+      const myEntry = event.attendees.find(
+        (a) => a.memberId.toString() === req.user._id.toString()
+      );
+      return {
+        _id: event._id,
+        title: event.title,
+        date: event.date,
+        domain: event.domain,
+        checkedIn: myEntry?.checkedIn || false,
+        checkedInAt: myEntry?.checkedInAt || null,
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateMyName = async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.name = String(name).trim();
+    await user.save();
+
+    const { password: _, ...userData } = user.toObject();
+    res.json(userData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const changeMyPassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current password and new password are required" });
+    }
+
+    if (String(newPassword).length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const isMatch = await user.comparePassword(String(currentPassword));
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    user.password = String(newPassword);
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

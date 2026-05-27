@@ -45,10 +45,24 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    if (!token) return null;
+    try {
+      const { data } = await api.get("/auth/me");
+      setUser(data.user);
+      localStorage.setItem("pcic_user", JSON.stringify(data.user));
+      return data.user;
+    } catch {
+      return null;
+    }
+  }, [token]);
+
   const isAuthenticated = !!user && !!token;
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, loading }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, refreshUser, isAuthenticated, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
