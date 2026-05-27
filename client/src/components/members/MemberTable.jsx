@@ -22,14 +22,15 @@ export default function MemberTable({ members, isLoading, strikeCounts = {}, onR
   const isLeader = ["president", "pm", "mc"].includes(user?.role);
 
   return (
+    <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
           <TableHead>Batch</TableHead>
-          <TableHead>Domain</TableHead>
+          <TableHead className="hidden md:table-cell">Domain</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Strikes</TableHead>
+          <TableHead className="hidden md:table-cell">Strikes</TableHead>
           {isLeader && <TableHead className="text-right">Actions</TableHead>}
         </TableRow>
       </TableHeader>
@@ -52,9 +53,9 @@ export default function MemberTable({ members, isLoading, strikeCounts = {}, onR
                 </div>
               </TableCell>
               <TableCell>{batchLabels[m.batch] || m.batch}</TableCell>
-              <TableCell><Badge variant="outline">{m.domain}</Badge></TableCell>
+              <TableCell className="hidden md:table-cell"><Badge variant="outline">{m.domain}</Badge></TableCell>
               <TableCell><Badge variant={statusVariant[m.status] || "secondary"}>{m.status}</Badge></TableCell>
-              <TableCell><StrikeBadge count={strikeCounts[m._id] || 0} /></TableCell>
+              <TableCell className="hidden md:table-cell"><StrikeBadge count={strikeCounts[m._id] || 0} /></TableCell>
               
               {isLeader && (
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
@@ -99,5 +100,6 @@ export default function MemberTable({ members, isLoading, strikeCounts = {}, onR
         })}
       </TableBody>
     </Table>
+    </div>
   );
 }

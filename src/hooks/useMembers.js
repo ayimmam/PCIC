@@ -9,7 +9,6 @@ export function useMembers(filters = {}, options = {}) {
       if (filters.domain) params.set("domain", filters.domain);
       if (filters.batch) params.set("batch", filters.batch);
       if (filters.status) params.set("status", filters.status);
-      if (filters.role) params.set("role", filters.role);
       if (filters.search) params.set("search", filters.search);
       const { data } = await api.get(`/members?${params}`);
       return data;
@@ -54,15 +53,43 @@ export function useUpdateMemberBatch() {
   });
 }
 
-export function useDismissMemberFlag() {
+export function useUpdateMemberProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id }) => {
-      const { data } = await api.put(`/members/${id}/flag/dismiss`);
+    mutationFn: async ({ id, name, email }) => {
+      const { data } = await api.put(`/members/${id}`, { name, email });
       return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["members"] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}
+
+export function useRequestDismissFlag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { data } = await api.put(`/members/${id}/request-dismiss-flag`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+}
+
+export function useApproveDismissFlag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { data } = await api.put(`/members/${id}/approve-dismiss-flag`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["members"] });
+      qc.invalidateQueries({ queryKey: ["strikes"] });
     },
   });
 }

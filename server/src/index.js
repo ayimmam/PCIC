@@ -19,6 +19,7 @@ import leadershipComplianceRoutes from "./routes/leadership-compliance.js";
 import summerProjectRoutes from "./routes/summer-projects.js";
 import reportRoutes from "./routes/reports.js";
 import peakProjectRoutes from "./routes/peak-projects.js";
+import sanitize from "./middleware/sanitize.js";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
@@ -35,6 +36,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors()); // Use permissive CORS to resolve the preflight 404 issue
 app.use(express.json());
+app.use(sanitize);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);

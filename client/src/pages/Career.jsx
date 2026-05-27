@@ -24,10 +24,10 @@ export default function Career() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Career & Recruitment"
-        subtitle="Join the Peak Craft Informatics Community"
+        title="Batch Progression"
+        subtitle="Request promotion to the next batch based on your skill growth and project contributions"
         action={
-          <Button onClick={() => setUploadOpen(true)}>Apply Now</Button>
+          <Button onClick={() => setUploadOpen(true)}>Request Promotion</Button>
         }
       />
 
@@ -68,14 +68,28 @@ export default function Career() {
 
       <div className="space-y-8">
         <div className="rounded-lg border bg-gradient-to-r from-primary/5 to-primary/10 p-8">
-          <h2 className="text-xl font-bold">Why Join PCIC?</h2>
+          <h2 className="text-xl font-bold">How Batch Progression Works</h2>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Be part of a community of 800+ students across Information Systems, Computer Science,
-            and Information Technology. Grow your skills, collaborate on real projects, and build
-            your professional network.
+            PCIC members advance through three batches as they develop their skills and contribute
+            to community projects. When your technical ability and project portfolio demonstrate
+            readiness for the next level, submit a promotion request with supporting evidence.
           </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-md border bg-background p-3">
+              <p className="text-sm font-semibold">Batch 1</p>
+              <p className="text-xs text-muted-foreground">Foundational skills, learning phase, initial project exposure</p>
+            </div>
+            <div className="rounded-md border bg-background p-3">
+              <p className="text-sm font-semibold">Batch 2</p>
+              <p className="text-xs text-muted-foreground">Intermediate skills, active project contributor, demonstrated growth</p>
+            </div>
+            <div className="rounded-md border bg-background p-3">
+              <p className="text-sm font-semibold">Batch 3</p>
+              <p className="text-xs text-muted-foreground">Advanced proficiency, project leadership, mentoring peers</p>
+            </div>
+          </div>
           <Button className="mt-4" onClick={() => setUploadOpen(true)}>
-            Submit Your Application
+            Request Promotion
           </Button>
         </div>
 

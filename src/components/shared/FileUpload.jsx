@@ -1,17 +1,32 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, X, FileText, Image } from "lucide-react";
+import { Upload, CloudRain, X, FileText, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+function acceptedExtensions(accept) {
+  const extensions = new Set();
+  Object.values(accept || {}).forEach((extList) => {
+    (extList || []).forEach((ext) => {
+      if (typeof ext === "string" && ext.startsWith(".")) {
+        extensions.add(ext.toLowerCase());
+      }
+    });
+  });
+  return Array.from(extensions);
+}
 
 export default function FileUpload({
   onFileSelect,
   accept = { "application/pdf": [".pdf"], "image/*": [".png", ".jpg", ".jpeg"] },
   maxSize = 10 * 1024 * 1024,
   label = "Upload file",
+  dropIcon = "upload",
 }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
+  const allowedExts = acceptedExtensions(accept);
+  const acceptedLabel = allowedExts.length > 0 ? allowedExts.join(", ") : "accepted format";
 
   const onDrop = useCallback(
     (acceptedFiles, rejectedFiles) => {
@@ -19,7 +34,15 @@ export default function FileUpload({
       if (rejectedFiles.length > 0) {
         const err = rejectedFiles[0].errors[0];
         const maxMb = (maxSize / (1024 * 1024)).toFixed(1);
-        setError(err.code === "file-too-large" ? `File is too large (max ${maxMb}MB)` : err.message);
+        if (err.code === "file-too-large") {
+          setError(`File is too large (max ${maxMb}MB)`);
+          return;
+        }
+        if (err.code === "file-invalid-type") {
+          setError(`Only ${acceptedLabel} files are accepted.`);
+          return;
+        }
+        setError(err.message);
         return;
       }
       if (acceptedFiles.length > 0) {
@@ -27,7 +50,7 @@ export default function FileUpload({
         onFileSelect?.(acceptedFiles[0]);
       }
     },
-    [onFileSelect]
+    [acceptedLabel, maxSize, onFileSelect]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -43,6 +66,7 @@ export default function FileUpload({
   };
 
   const FileIcon = file?.type?.startsWith("image") ? Image : FileText;
+  const DropIcon = dropIcon === "cloud-rain" ? CloudRain : Upload;
 
   return (
     <div className="space-y-2">
@@ -56,12 +80,12 @@ export default function FileUpload({
           )}
         >
           <input {...getInputProps()} />
-          <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+          <DropIcon className="mb-2 h-8 w-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
             {isDragActive ? "Drop the file here" : "Drag & drop or click to select"}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            PDF or images, max {(maxSize / (1024 * 1024)).toFixed(1)}MB
+            {acceptedLabel} only, max {(maxSize / (1024 * 1024)).toFixed(1)}MB
           </p>
         </div>
       ) : (

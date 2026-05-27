@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://pcic-hpw7.vercel.app/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://pcic-hpw7.vercel.app/api",
 });
 
 api.interceptors.request.use((config) => {

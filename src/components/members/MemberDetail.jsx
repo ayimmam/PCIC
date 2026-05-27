@@ -6,12 +6,9 @@ import StrikeBadge from "@/components/strikes/StrikeBadge";
 import StrikeHistory from "@/components/strikes/StrikeHistory";
 import { useMemberStrikes } from "@/hooks/useStrikes";
 import { useAuth } from "@/hooks/useAuth";
-import { useDismissMemberFlag } from "@/hooks/useMembers";
 import { useState } from "react";
 import StatusChangeDialog from "./StatusChangeDialog";
 import BatchChangeDialog from "./BatchChangeDialog";
-import { getMemberFlagLabel, isMemberFlagged } from "@/lib/strikePolicy";
-import { toast } from "sonner";
 
 const statusVariant = { active: "success", warning: "warning", inactive: "danger" };
 const batchLabels = { batch_1: "Batch 1", batch_2: "Batch 2", batch_3: "Batch 3" };
@@ -21,22 +18,8 @@ export default function MemberDetail({ member, open, onOpenChange }) {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [batchDialogOpen, setBatchDialogOpen] = useState(false);
   const { data: strikes } = useMemberStrikes(member?._id);
-  const dismissFlag = useDismissMemberFlag();
   const canChangeStatus = ["president", "pm", "mc"].includes(user?.role);
   const canAdjustBatch = user?.role === "president";
-  const canDismissFlag = ["president", "pm", "mc"].includes(user?.role);
-  const strikeCount = strikes?.length || 0;
-  const flagged = isMemberFlagged(member, strikeCount);
-
-  const handleDismissFlag = async () => {
-    if (!member?._id) return;
-    try {
-      await dismissFlag.mutateAsync({ id: member._id });
-      toast.success(`Flag dismissed for ${member.name}`);
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to dismiss flag");
-    }
-  };
 
   if (!member) return null;
 
@@ -54,8 +37,7 @@ export default function MemberDetail({ member, open, onOpenChange }) {
               <Badge variant={statusVariant[member.status]}>{member.status}</Badge>
               <Badge variant="outline">{member.domain}</Badge>
               <Badge variant="secondary">{batchLabels[member.batch] || member.batch}</Badge>
-              <StrikeBadge count={strikeCount} />
-              {flagged && <Badge variant="danger">{getMemberFlagLabel(strikeCount)}</Badge>}
+              <StrikeBadge count={strikes?.length || 0} />
             </div>
 
             <div className="grid grid-cols-2 gap-3 rounded-md bg-muted p-4">
@@ -78,16 +60,6 @@ export default function MemberDetail({ member, open, onOpenChange }) {
             </div>
 
             <div className="space-y-2">
-              {canDismissFlag && flagged && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleDismissFlag}
-                  disabled={dismissFlag.isPending}
-                >
-                  {dismissFlag.isPending ? "Dismissing..." : "Dismiss Flag"}
-                </Button>
-              )}
               {canChangeStatus && (
                 <Button variant="outline" className="w-full" onClick={() => setStatusDialogOpen(true)}>
                   Change Status

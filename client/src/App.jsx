@@ -2,6 +2,8 @@ import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyTasks } from "@/hooks/useDecisions";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
+import ProfileDropdown from "@/components/shared/ProfileDropdown";
+import WelcomeDialog from "@/components/shared/WelcomeDialog";
 import { Badge } from "@/components/ui/badge";
 import RoleGate from "@/components/shared/RoleGate";
 import Login from "@/pages/Login";
@@ -36,7 +38,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/events", label: "Events", icon: CalendarDays },
-  { path: "/members", label: "Members", icon: Users },
+  { path: "/members", label: "Members", icon: Users, roles: ["president", "vice_president", "pm", "mc", "domain_leader"] },
   { path: "/reports", label: "Decisions", icon: FileText },
   {
     path: "/leadership-compliance",
@@ -44,7 +46,7 @@ const navItems = [
     icon: ClipboardCheck,
     roles: ["president", "vice_president", "domain_leader"],
   },
-  { path: "/career", label: "Career", icon: Briefcase },
+  { path: "/career", label: "Progression", icon: Briefcase },
   { path: "/projects", label: "Projects", icon: FolderKanban, batches: ["batch_2", "batch_3"], roles: ["pm"] },
   {
     path: "/summer-project",
@@ -138,11 +140,22 @@ function AppLayout() {
   return (
     <div className="min-h-screen">
       <Sidebar user={user} onLogout={logout} />
-      <main className="p-6 pt-20 lg:ml-64 lg:pt-6">
+
+      {/* Top header bar with profile dropdown */}
+      <header className="fixed right-0 top-0 z-30 flex h-14 items-center justify-end gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:left-64">
+        <ProfileDropdown />
+      </header>
+
+      <main className="p-6 pt-20 lg:ml-64 lg:pt-20">
+        <WelcomeDialog />
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/members" element={<Members />} />
+          <Route path="/members" element={
+            <RoleGate allowedRoles={["president", "vice_president", "pm", "mc", "domain_leader"]} fallback={<Navigate to="/" />}>
+              <Members />
+            </RoleGate>
+          } />
           <Route path="/reports" element={<Reports />} />
           <Route path="/leadership-compliance" element={<LeadershipCompliance />} />
           <Route path="/career" element={<Career />} />
