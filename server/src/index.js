@@ -25,16 +25,30 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 // Validation for critical environment variables in production/serverless
 if (!process.env.MONGODB_URI) {
-  console.error("CRITICAL ERROR: MONGODB_URI is not defined. Please add it to your Vercel Environment Variables.");
+  console.error(
+    "CRITICAL ERROR: MONGODB_URI is not defined. Please add it to your Vercel Environment Variables.",
+  );
 }
 if (!process.env.JWT_SECRET) {
-  console.error("CRITICAL ERROR: JWT_SECRET is not defined. Please add it to your Vercel Environment Variables.");
+  console.error(
+    "CRITICAL ERROR: JWT_SECRET is not defined. Please add it to your Vercel Environment Variables.",
+  );
 }
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors()); // Use permissive CORS to resolve the preflight 404 issue
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || [
+      "http://localhost:5173",
+      "https://pcic.tech",
+    ],
+    credentials: true,
+  }),
+);
+// Legacy: keep permissive CORS as fallback comment
+// app.use(cors()); // Use permissive CORS to resolve the preflight 404 issue
 app.use(express.json());
 app.use(sanitize);
 
@@ -51,7 +65,10 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/peak-projects", peakProjectRoutes);
 
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", environment: process.env.NODE_ENV || "development" });
+  res.json({
+    status: "ok",
+    environment: process.env.NODE_ENV || "development",
+  });
 });
 
 // For Vercel: Export the app as default
@@ -60,7 +77,10 @@ export default app;
 // Establish DB connection
 connectDB().then(() => {
   // Only start listener if not in production/Vercel/test
-  if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.NODE_ENV !== "test"
+  ) {
     app.listen(PORT, () => {
       console.log(`Server running locally on port ${PORT}`);
     });
