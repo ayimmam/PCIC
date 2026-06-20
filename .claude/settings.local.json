@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check src/seed-members.js)",
+      "Bash(node --check src/controllers/authController.js)",
+      "Bash(node --check src/routes/auth.js)",
+      "Bash(node --check src/models/User.js)",
+      "Bash(node_modules/.bin/eslint src/pages/Onboarding.jsx src/App.jsx src/context/AuthContext.jsx)",
+      "Bash(npx vite *)"
+    ]
+  }
+}

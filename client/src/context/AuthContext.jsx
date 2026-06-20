@@ -38,6 +38,18 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
+  const completeOnboarding = useCallback(async (fullName, newPassword) => {
+    const { data } = await api.post("/auth/complete-onboarding", { fullName, newPassword });
+    localStorage.setItem("pcic_token", data.token);
+    localStorage.setItem("pcic_user", JSON.stringify(data.user));
+    // Force the welcome popup once for this freshly-onboarded member, even if
+    // "Don't show again" was previously set in this browser.
+    sessionStorage.setItem("pcic_force_welcome", "true");
+    setToken(data.token);
+    setUser(data.user);
+    return data;
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem("pcic_token");
     localStorage.removeItem("pcic_user");
@@ -61,7 +73,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, refreshUser, isAuthenticated, loading }}
+      value={{ user, token, login, logout, completeOnboarding, refreshUser, isAuthenticated, loading }}
     >
       {children}
     </AuthContext.Provider>

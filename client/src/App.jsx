@@ -7,6 +7,7 @@ import WelcomeDialog from "@/components/shared/WelcomeDialog";
 import { Badge } from "@/components/ui/badge";
 import RoleGate from "@/components/shared/RoleGate";
 import Login from "@/pages/Login";
+import Onboarding from "@/pages/Onboarding";
 import PeakProjects from "@/pages/PeakProjects";
 import Dashboard from "@/pages/Dashboard";
 import Events from "@/pages/Events";
@@ -136,6 +137,12 @@ function Sidebar({ user, onLogout }) {
 
 function AppLayout() {
   const { user, logout } = useAuth();
+
+  // Hard gate: members who logged in with a temporary password must finish
+  // onboarding (set name + personal password) before accessing anything else.
+  if (user?.mustResetPassword) {
+    return <Onboarding />;
+  }
 
   return (
     <div className="min-h-screen">
