@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema(
       enum: ["active", "warning", "inactive", "suspended"],
       default: "active",
     },
+    mustResetPassword: { type: Boolean, default: false },
     isFlagged: { type: Boolean, default: false },
     flagAssignedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     dismissFlagRequested: { type: Boolean, default: false },

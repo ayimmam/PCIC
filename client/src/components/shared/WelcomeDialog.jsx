@@ -14,12 +14,22 @@ import { CheckCircle, BarChart3, Calendar, Users, Shield } from "lucide-react";
 
 const DISMISSED_KEY = "pcic_welcome_dismissed";
 const SESSION_KEY = "pcic_welcome_shown_this_session";
+const FORCE_KEY = "pcic_force_welcome";
 
 export default function WelcomeDialog() {
   const [open, setOpen] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
+    // A freshly-onboarded member always sees the popup once, regardless of the
+    // saved "Don't show again" / session flags.
+    const forced = sessionStorage.getItem(FORCE_KEY) === "true";
+    if (forced) {
+      sessionStorage.removeItem(FORCE_KEY);
+      const timer = setTimeout(() => setOpen(true), 600);
+      return () => clearTimeout(timer);
+    }
+
     const dismissed = localStorage.getItem(DISMISSED_KEY) === "true";
     const shownThisSession = sessionStorage.getItem(SESSION_KEY) === "true";
 

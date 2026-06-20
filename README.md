@@ -4,7 +4,7 @@ Web platform for the **Peak Craft Informatics Community** (PCIC) — digitizing 
 
 🌐 **Live:** [pcic.tech](https://pcic.tech) &nbsp;|&nbsp; 📄 **Projects:** [pcic.tech/peak-projects](https://pcic.tech/peak-projects)
 
-## Screenshots
+## Screenshots 
 
 | | |
 |---|---|

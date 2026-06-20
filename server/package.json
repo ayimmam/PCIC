@@ -8,6 +8,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "seed": "node src/seed.js",
+    "seed:members": "node src/seed-members.js",
     "seed:academic-calendar": "node src/seed-academic-calendar.js",
     "migrate:domains": "node src/migrate-legacy-domains.js",
     "test": "NODE_ENV=test node --test test/domain-students.unit.test.js test/summer-seed-data.test.js test/peak-projects.integration.test.js"
