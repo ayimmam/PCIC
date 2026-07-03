@@ -1,31 +1,32 @@
 ## Summary
 
-This PR finalizes the project migration and split deployment (GitHub Pages + Vercel). It includes critical resilience fixes for Vercel serverless functions to prevent startup crashes and adds explicit environment variable validation for easier debugging.
+This PR adds PostHog product analytics to the frontend. `posthog-js` is initialized on app load in both the root and `client/` React apps, gated behind an env var so it's a safe no-op if the key is ever unset.
 
 ## Changes
 
-- [x] **Serverless Resilience**: Removed `process.exit(1)` from the database connection logic to prevent Vercel functions from crashing on startup.
-- [x] **Environment Validation**: Added explicit logging for missing `MONGODB_URI` and `JWT_SECRET` variables to provide clear feedback in Vercel logs.
-- [x] **Split Deployment**: Finalized the cross-domain configuration between GitHub Pages (`pcic.tech`) and the Vercel backend.
+- [x] **PostHog Init**: Added `posthog.init(...)` in `src/main.jsx` and `client/src/main.jsx`, wrapped in `if (import.meta.env.VITE_POSTHOG_KEY)` so analytics are skipped gracefully when the key is missing.
+- [x] **Dependency**: Added `posthog-js` to `package.json` and `client/package.json`.
+- [x] **Env Config**: Added `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST` to `.env`, `.env.production`, `client/.env`, and the new `client/.env.production` (client previously had no production env file).
 
 ## Related Issue
 
-Resolves Vercel `FUNCTION_INVOCATION_FAILED` errors and completes migration; Closes #final-migration-fix
+N/A — analytics setup requested directly, no tracked issue.
 
 ## How to Test
 
-1. **Frontend**: Verify that the live site on GitHub Pages continues to call the Vercel API.
-2. **Backend**: Access `/api/health`. If variables are missing, the Vercel Logs will now accurately report the missing keys instead of showing a generic crash page.
-3. **Vercel Settings**: Ensure **Root Directory** is set to `server` and all `.env` variables are added to the Vercel dashboard.
+1. **Local dev**: Run `npm run dev` (root) or `cd client && npm run dev`, open the app, and confirm a PostHog network request fires to `https://us.i.posthog.com`.
+2. **PostHog dashboard**: Check the PostHog project for the `phc_vvnu...` key and confirm pageview/session events are landing under "Live events."
+3. **Build sanity**: Run `npm run build` in both root and `client/` and confirm they complete without errors (already verified).
+4. **Disabled fallback**: Temporarily unset `VITE_POSTHOG_KEY` and confirm the app still loads normally with no PostHog calls.
 
 ## Screenshots (if UI changes)
 
-<!-- Paste screenshots here -->
+<!-- No UI changes — analytics only -->
 
 ## Checklist
 
 - [x] Code follows project conventions (JSX, ES modules, Tailwind)
 - [x] No TypeScript syntax in any files
 - [x] API errors are handled with try/catch
-- [x] Tested locally — frontend and backend both work
+- [x] Tested locally — frontend build succeeds in both root and `client/`
 - [x] No `console.log` left in production code (except server startup)
