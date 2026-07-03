@@ -28,6 +28,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.468.0",
     "pcic-management-system": "file:..",
+    "posthog-js": "^1.396.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.5",
