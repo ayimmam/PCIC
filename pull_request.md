@@ -14,7 +14,7 @@ N/A — analytics setup requested directly, no tracked issue.
 
 ## How to Test
 
-1. **Local dev**: Run `npm run dev` (root) or `cd client && npm run dev`, open the app, and confirm a PostHog network request fires to `https://us.i.posthog.com`.
+1. **Local dev**: Run `npm run dev` (root) or `cd client && npm run dev`, open the app, and confirm a PostHog network request fires to `https://eu.i.posthog.com` (the project is EU-hosted).
 2. **PostHog dashboard**: Check the PostHog project for the `phc_vvnu...` key and confirm pageview/session events are landing under "Live events."
 3. **Build sanity**: Run `npm run build` in both root and `client/` and confirm they complete without errors (already verified).
 4. **Disabled fallback**: Temporarily unset `VITE_POSTHOG_KEY` and confirm the app still loads normally with no PostHog calls.
