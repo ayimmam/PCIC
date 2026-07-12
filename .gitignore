@@ -13,4 +13,6 @@ Thumbs.db
 .cursor/debug*.log
 
 # Keep .cursor/rules/ and .cursor/skills/ tracked (they're project config)
-node_modules/
+
+# Operator-only output of seed-members.js — per-user temp passwords, never committed
+server/seed-output/
