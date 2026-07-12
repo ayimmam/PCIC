@@ -99,7 +99,7 @@ npm test
 cd server && npm run dev
 
 # Terminal 2 — Frontend (port 5173)
-npm run dev
+cd client && npm run dev
 ```
 
 Open http://localhost:5173 and log in with a seeded account.
@@ -107,7 +107,7 @@ Open http://localhost:5173 and log in with a seeded account.
 ## Project Structure
 
 ```
-src/                            React frontend (Vite root)
+client/src/                     React frontend (Vite root)
   api/axios.js                  API client (JWT auto-attached)
   context/AuthContext.jsx       Auth state provider
   hooks/                        React Query hooks (useEvents, useMembers, etc.)
