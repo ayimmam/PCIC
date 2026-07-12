@@ -5,6 +5,11 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+// Temp passwords (seed-members.js) are only meant to bridge the gap until
+// onboarding. Past this window, an un-onboarded account is treated as stale
+// and login is blocked until an admin reissues a credential.
+const TEMP_PASSWORD_EXPIRY_MS = 14 * 24 * 60 * 60 * 1000;
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -16,6 +21,12 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    if (user.mustResetPassword && Date.now() - user.createdAt.getTime() > TEMP_PASSWORD_EXPIRY_MS) {
+      return res.status(401).json({
+        message: "Your temporary password has expired. Contact a leadership member for a new one.",
+      });
     }
 
     const token = generateToken(user._id);
