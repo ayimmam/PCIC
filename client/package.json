@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -26,8 +26,9 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.468.0",
-    "pcic-management-system": "file:..",
     "posthog-js": "^1.396.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
