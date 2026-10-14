@@ -72,8 +72,8 @@ export default function ProfileDropdown() {
       toast.error("All fields are required");
       return;
     }
-    if (newPassword.length < 15) {
-      toast.error("New password must be at least 15 characters");
+    if ([...newPassword].length < 8 || [...newPassword].length > 10) {
+      toast.error("New password must be 8–10 characters");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -223,7 +223,7 @@ export default function ProfileDropdown() {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
-            <DialogDescription>Enter your current password and a new password (at least 15 characters).</DialogDescription>
+            <DialogDescription>Enter your current password and a new password (8–10 characters).</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">

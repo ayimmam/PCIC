@@ -35,6 +35,7 @@ import {
   X,
   CloudRain,
   ClipboardCheck,
+  ScanLine,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/events", label: "Events", icon: CalendarDays },
+  { path: "/check-in", label: "Check-in", icon: ScanLine, roles: ["president", "event_organizer"] },
   { path: "/members", label: "Members", icon: Users, roles: ["president", "vice_president", "pm", "mc", "domain_leader"] },
   { path: "/reports", label: "Decisions", icon: FileText },
   {
@@ -197,6 +199,7 @@ export default function App() {
       <Route path="/peak-projects" element={<PeakProjects />} />
       <Route path="/events/project-showcase-semester-kickoff-2026" element={<ShowcaseEvent />} />
       <Route path="/events/project-showcase-semester-kickoff-2026/check-in" element={<ProtectedRoute><ShowcaseScanner /></ProtectedRoute>} />
+      <Route path="/check-in" element={<ProtectedRoute><ShowcaseScanner /></ProtectedRoute>} />
       {protectedPaths.map((path) => <Route key={path} path={`/${path}/*`} element={<ProtectedRoute><AppLayout /></ProtectedRoute>} />)}
       <Route path="*" element={<main className="mx-auto max-w-xl px-5 py-24 text-center"><h1 className="text-4xl font-bold">Page not found</h1><p className="mt-3 text-muted-foreground">This address does not match a PCIC page.</p><Link to="/" className="mt-6 inline-block text-primary underline">Go to homepage</Link></main>} />
     </Routes></Suspense>

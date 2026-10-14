@@ -3,6 +3,7 @@ import Strike from "../models/Strike.js";
 import Event from "../models/Event.js";
 import EventRegistration from "../models/EventRegistration.js";
 import { sendWarningEmail } from "../utils/email.js";
+import { validPassword } from "../utils/passwordPolicy.js";
 
 /** Escape special regex characters to prevent ReDoS */
 const escapeRegex = (str) => String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -87,6 +88,28 @@ export const updateMemberBatch = async (req, res) => {
     const { password: _, ...memberData } = member.toObject();
     res.json(memberData);
   } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateMemberRole = async (req, res) => {
+  try {
+    const allowedRoles = ["president", "vice_president", "secretary", "pm", "mc", "event_organizer", "pr", "domain_leader", "member"];
+    const { role } = req.body || {};
+    if (!allowedRoles.includes(role)) return res.status(400).json({ message: "Invalid role" });
+    const member = await User.findById(req.params.id);
+    if (!member) return res.status(404).json({ message: "Member not found" });
+    if (String(member._id) === String(req.user._id)) return res.status(400).json({ message: "You cannot change your own role" });
+    if (member.role === role) {
+      const { password: _, ...memberData } = member.toObject();
+      return res.json(memberData);
+    }
+    member.role = role;
+    member.sessionVersion = (member.sessionVersion || 0) + 1;
+    await member.save();
+    const { password: _, ...memberData } = member.toObject();
+    res.json(memberData);
+  } catch {
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -204,8 +227,8 @@ export const changeMyPassword = async (req, res) => {
       return res.status(400).json({ message: "Current password and new password are required" });
     }
 
-    if (String(newPassword).length < 15 || Buffer.byteLength(String(newPassword), "utf8") > 72) {
-      return res.status(400).json({ message: "New password must be 15–72 bytes" });
+    if (!validPassword(newPassword)) {
+      return res.status(400).json({ message: "New password must be 8–10 characters" });
     }
 
     const user = await User.findById(req.user._id).select("+password");

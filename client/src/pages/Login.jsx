@@ -14,7 +14,7 @@ import api from "@/api/axios";
 const schema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().email(),
-  password: z.string().min(15, "Use at least 15 characters").refine((value) => new TextEncoder().encode(value).length <= 72, "Use at most 72 UTF-8 bytes"),
+  password: z.string().refine((value) => [...value].length >= 8 && [...value].length <= 10, "Use 8–10 characters"),
   domain: z.enum(PCIC_DOMAINS),
   academicYear: z.coerce.number().int().min(1).max(5),
 });
@@ -77,14 +77,14 @@ export default function Login() {
         <button className={`rounded-md py-2 ${signupMode ? "bg-orange-400 font-semibold text-slate-950" : "text-slate-200"}`} onClick={() => setParams({ mode: "signup", ...(next ? { next } : {}) })}>Sign up</button>
       </div>}
       {(recoveryMode || params.get("reset")) ? <form onSubmit={submitRecovery} className="mt-6 space-y-4">
-        {params.get("reset") ? <div><Label htmlFor="recovery-password">New password</Label><Input id="recovery-password" type="password" className="mt-1 bg-white text-slate-950" minLength={15} value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} required /></div>
+        {params.get("reset") ? <div><Label htmlFor="recovery-password">New password (8–10 characters)</Label><Input id="recovery-password" type="password" className="mt-1 bg-white text-slate-950" minLength={8} maxLength={10} value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} required /></div>
           : <div><Label htmlFor="recovery-email">Email</Label><Input id="recovery-email" type="email" className="mt-1 bg-white text-slate-950" value={email} onChange={(event) => setEmail(event.target.value)} required /></div>}
         <Button disabled={busy} className="w-full bg-cyan-400 text-slate-950" type="submit">{params.get("reset") ? "Set new password" : "Send recovery email"}</Button>
         <button type="button" className="text-sm text-cyan-300 underline" onClick={() => { setRecoveryMode(false); setParams({}); }}>Back to sign in</button>
       </form> : signupMode ? <form onSubmit={submitSignup} className="mt-6 space-y-4">
         <div><Label htmlFor="signup-name">Full name</Label><Input id="signup-name" className="mt-1 bg-white text-slate-950" autoComplete="name" {...form.register("name")} />{form.formState.errors.name && <p className="mt-1 text-xs text-orange-300">Enter your full name.</p>}</div>
         <div><Label htmlFor="signup-email">Email</Label><Input id="signup-email" type="email" className="mt-1 bg-white text-slate-950" autoComplete="email" {...form.register("email")} />{form.formState.errors.email && <p className="mt-1 text-xs text-orange-300">Enter a valid email.</p>}</div>
-        <div><Label htmlFor="signup-password">Password</Label><Input id="signup-password" type="password" className="mt-1 bg-white text-slate-950" autoComplete="new-password" {...form.register("password")} />{form.formState.errors.password && <p className="mt-1 text-xs text-orange-300">Use at least 15 characters and at most 72 bytes.</p>}</div>
+        <div><Label htmlFor="signup-password">Password (8–10 characters)</Label><Input id="signup-password" type="password" className="mt-1 bg-white text-slate-950" autoComplete="new-password" maxLength={10} {...form.register("password")} />{form.formState.errors.password && <p className="mt-1 text-xs text-orange-300">Use 8–10 characters.</p>}</div>
         <div><Label htmlFor="signup-domain">Peak domain</Label><select id="signup-domain" className="mt-1 w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-950" {...form.register("domain")}>{PCIC_DOMAINS.map((domain) => <option key={domain}>{domain}</option>)}</select></div>
         <div><Label htmlFor="signup-year">Academic year</Label><select id="signup-year" className="mt-1 w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-950" {...form.register("academicYear")}>{[1, 2, 3, 4, 5].map((year) => <option key={year} value={year}>Year {year}</option>)}</select></div>
         <Button type="submit" disabled={busy} className="w-full bg-orange-400 text-slate-950 hover:bg-orange-300">{busy ? "Creating account…" : "Create account"}</Button>

@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import User from "../models/User.js";
 import { sendPasswordResetEmail } from "../utils/email.js";
+import { validPassword } from "../utils/passwordPolicy.js";
 
 const generateToken = (user) => {
   return jwt.sign({ id: user._id, sv: user.sessionVersion || 0 }, process.env.JWT_SECRET,
@@ -16,8 +17,6 @@ const safeUser = (user) => {
   return value;
 };
 
-const validPassword = (password) => typeof password === "string" && password.length >= 15 && Buffer.byteLength(password, "utf8") <= 72;
-
 export const signup = async (req, res) => {
   try {
     const { name, email, password, domain, academicYear } = req.body || {};
@@ -26,7 +25,7 @@ export const signup = async (req, res) => {
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) || normalizedEmail.length > 254 ||
         !validPassword(password) || !["Code Crafters", "Turing Tribe", "Cyber Crew", "Pixel Peeps"].includes(domain) ||
         ![1, 2, 3, 4, 5].includes(Number(academicYear))) {
-      return res.status(400).json({ message: "Enter a valid name, email, domain, academic year, and password of 15–72 bytes" });
+      return res.status(400).json({ message: "Enter a valid name, email, domain, academic year, and password of 8–10 characters" });
     }
     const user = await User.create({
       name: name.trim(), email: normalizedEmail, password, domain,
@@ -75,6 +74,7 @@ export const login = async (req, res) => {
 export const register = async (req, res) => {
   try {
     const { name, email, password, role, batch, domain } = req.body;
+    if (!validPassword(password)) return res.status(400).json({ message: "Password must be 8–10 characters" });
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -102,7 +102,7 @@ export const completeOnboarding = async (req, res) => {
       return res.status(400).json({ message: "Full name is required" });
     }
     if (!validPassword(newPassword)) {
-      return res.status(400).json({ message: "New password must be 15–72 bytes" });
+      return res.status(400).json({ message: "New password must be 8–10 characters" });
     }
 
     const user = await User.findById(req.user._id);

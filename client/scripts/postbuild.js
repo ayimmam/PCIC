@@ -29,6 +29,7 @@ const entries = [
   ["summer-project", "PCIC summer project", "Member summer project.", true],
   ["leadership-compliance", "PCIC leadership compliance", "Leadership reports.", true],
   ["admin", "PCIC administration", "Admin tools.", true],
+  ["check-in", "PCIC staff check-in", "Staff check-in scanner.", true],
   ["peak-projects", "Peak Craft projects", "Explore projects built by Peak Craft members.", false],
 ];
 for (const [route, title, description, noindex] of entries) {

@@ -54,6 +54,14 @@ export function useUpdateMemberBatch() {
   });
 }
 
+export function useUpdateMemberRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, role }) => (await api.put(`/members/${id}/role`, { role })).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["members"] }),
+  });
+}
+
 export function useUpdateMemberProfile() {
   const qc = useQueryClient();
   return useMutation({

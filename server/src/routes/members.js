@@ -4,6 +4,7 @@ import {
 	getMemberCount,
 	updateMemberStatus,
 	updateMemberBatch,
+	updateMemberRole,
 	updateMemberProfile,
 	getMyProfile,
 	getMyStrikes,
@@ -30,6 +31,7 @@ router.get("/count", auth, roleGuard("president", "vice_president", "pm", "mc", 
 router.put("/:id", auth, roleGuard("president", "pm", "mc"), updateMemberProfile);
 router.put("/:id/status", auth, roleGuard("president", "pm", "mc"), updateMemberStatus);
 router.put("/:id/batch", auth, roleGuard("president"), updateMemberBatch);
+router.put("/:id/role", auth, roleGuard("president"), updateMemberRole);
 router.put("/:id/request-dismiss-flag", auth, roleGuard("president", "pm", "mc"), requestDismissFlag);
 router.put("/:id/approve-dismiss-flag", auth, roleGuard("president"), approveDismissFlag);
 

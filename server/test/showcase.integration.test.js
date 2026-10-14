@@ -8,6 +8,7 @@ import EventAttendanceAudit from "../src/models/EventAttendanceAudit.js";
 import User from "../src/models/User.js";
 import { rsvp, cancelRsvp, redeemCheckin } from "../src/controllers/eventRegistrationController.js";
 import { signup, login } from "../src/controllers/authController.js";
+import { updateMemberRole } from "../src/controllers/memberController.js";
 import sharedRateLimit from "../src/middleware/sharedRateLimit.js";
 import bootstrapShowcase from "../src/bootstrapShowcase.js";
 import Decision from "../src/models/Decision.js";
@@ -48,7 +49,7 @@ describe("showcase reservation and QR check-in", () => {
 
   it("creates an immediate member account without accepting submitted privileges", async () => {
     const res = response();
-    await signup({ body: { name: "New Student", email: "NEW@example.test", password: "a-long-student-password",
+    await signup({ body: { name: "New Student", email: "NEW@example.test", password: "Strong9!xy",
       domain: "Cyber Crew", academicYear: 3, role: "president", batch: "batch_3", status: "warning" } }, res);
     assert.equal(res.code, 201);
     assert.equal(res.body.user.role, "member");
@@ -57,9 +58,32 @@ describe("showcase reservation and QR check-in", () => {
     assert.equal(res.body.user.email, "new@example.test");
     assert.equal(res.body.user.password, undefined);
     const signedIn = response();
-    await login({ body: { email: "NEW@example.test", password: "a-long-student-password" } }, signedIn);
+    await login({ body: { email: "NEW@example.test", password: "Strong9!xy" } }, signedIn);
     assert.equal(signedIn.code, 200);
     assert.ok(signedIn.body.token);
+  });
+
+  it("rejects passwords outside 8–10 characters", async () => {
+    for (const password of ["short7!", "morethan10!!"]) {
+      const res = response();
+      await signup({ body: { name: "New Student", email: "another@example.test", password,
+        domain: "Cyber Crew", academicYear: 3 } }, res);
+      assert.equal(res.code, 400);
+    }
+  });
+
+  it("allows a president to assign a leadership role and invalidates sessions", async () => {
+    const member = await User.findOne({ email: "new@example.test" });
+    const res = response();
+    await updateMemberRole({ params: { id: String(member._id) }, body: { role: "event_organizer" },
+      user: { _id: staffId, role: "president" } }, res);
+    assert.equal(res.code, 200);
+    assert.equal(res.body.role, "event_organizer");
+    assert.equal(res.body.sessionVersion, 1);
+    const self = response();
+    await updateMemberRole({ params: { id: String(member._id) }, body: { role: "president" },
+      user: { _id: member._id, role: "event_organizer" } }, self);
+    assert.equal(self.code, 400);
   });
 
   it("shares signup attempt limits through MongoDB", async () => {

@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import StatusChangeDialog from "./StatusChangeDialog";
 import BatchChangeDialog from "./BatchChangeDialog";
+import RoleChangeDialog from "./RoleChangeDialog";
 
 const statusVariant = { active: "success", warning: "warning", inactive: "danger" };
 const batchLabels = { batch_1: "Batch 1", batch_2: "Batch 2", batch_3: "Batch 3" };
@@ -17,6 +18,7 @@ export default function MemberDetail({ member, open, onOpenChange }) {
   const { user } = useAuth();
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [batchDialogOpen, setBatchDialogOpen] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const { data: strikes } = useMemberStrikes(member?._id);
   const canChangeStatus = ["president", "pm", "mc"].includes(user?.role);
   const canAdjustBatch = user?.role === "president";
@@ -70,6 +72,11 @@ export default function MemberDetail({ member, open, onOpenChange }) {
                   Adjust Level (Promote/Demote)
                 </Button>
               )}
+              {user?.role === "president" && user?._id !== member._id && (
+                <Button variant="outline" className="w-full" onClick={() => setRoleDialogOpen(true)}>
+                  Change Leadership Role
+                </Button>
+              )}
             </div>
 
             <Separator />
@@ -92,6 +99,7 @@ export default function MemberDetail({ member, open, onOpenChange }) {
         onOpenChange={setBatchDialogOpen}
         member={member}
       />
+      <RoleChangeDialog member={member} open={roleDialogOpen} onOpenChange={setRoleDialogOpen} />
     </>
   );
 }

@@ -20,8 +20,8 @@ export default function Onboarding() {
       toast.error("Please enter your full name");
       return;
     }
-    if (password.length < 15) {
-      toast.error("Password must be at least 15 characters");
+    if ([...password].length < 8 || [...password].length > 10) {
+      toast.error("Password must be 8–10 characters");
       return;
     }
     if (password !== confirm) {
@@ -68,7 +68,7 @@ export default function Onboarding() {
               <Input
                 id="password"
                 type="password"
-                placeholder="At least 15 characters"
+                placeholder="8–10 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
