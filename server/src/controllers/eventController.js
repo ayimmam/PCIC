@@ -1,4 +1,5 @@
 import Event from "../models/Event.js";
+import EventRegistration from "../models/EventRegistration.js";
 
 const LEADERSHIP_ROLES = new Set(["president", "pm", "mc", "domain_leader", "event_organizer"]);
 
@@ -25,15 +26,37 @@ export const getEvents = async (req, res) => {
     if (timeframe === "upcoming") filter.date = { $gte: new Date() };
     if (timeframe === "past") filter.date = { $lt: new Date() };
 
-    const events = await Event.find(filter)
-      .populate("createdBy", "name")
-      .populate("attendees.memberId", "name email")
-      .sort({ date: -1 });
-
+    const events = await Event.aggregate([
+      { $match: filter },
+      { $sort: { date: -1, _id: -1 } },
+      { $project: {
+        title: 1, slug: 1, description: 1, date: 1, endAt: 1, venue: 1, domain: 1,
+        scope: 1, capacity: 1, ticketed: 1, reservationCount: 1, reportedAttendeeCount: 1,
+        attendanceSummary: { checkedIn: { $size: { $filter: {
+          input: { $ifNull: ["$attendees", []] }, as: "entry", cond: { $eq: ["$$entry.checkedIn", true] },
+        } } } },
+      } },
+    ]);
     res.json(events);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
+};
+
+export const getEventById = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    const canManage = ["president", "pm", "mc", "domain_leader", "event_organizer"].includes(req.user.role);
+    if (canManage) await event.populate("attendees.memberId", "name email");
+    const value = event.toObject();
+    if (!canManage) {
+      value.attendees = value.attendees.filter((entry) => String(entry.memberId) === String(req.user._id));
+      delete value.assignedStaff;
+    }
+    res.set("Cache-Control", "no-store");
+    res.json(value);
+  } catch (error) { console.error(error); res.status(500).json({ message: "Unable to load event" }); }
 };
 
 export const getEventCount = async (_req, res) => {
@@ -74,6 +97,7 @@ export const getEventCount = async (_req, res) => {
       checkedInTotal: 0,
       eventsWithAttendanceReport: 0,
     };
+    const ticketedCheckedIn = await EventRegistration.countDocuments({ status: "checked_in" });
 
     const latestReportedEvent = await Event.findOne({ reportedAttendeeCount: { $ne: null } })
       .select("title date reportedAttendeeCount")
@@ -83,12 +107,12 @@ export const getEventCount = async (_req, res) => {
       total: count,
       upcoming,
       reportedAttendeesTotal: aggregate.reportedAttendeesTotal,
-      checkedInTotal: aggregate.checkedInTotal,
+      checkedInTotal: aggregate.checkedInTotal + ticketedCheckedIn,
       eventsWithAttendanceReport: aggregate.eventsWithAttendanceReport,
       latestReportedEvent,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -109,26 +133,26 @@ export const createEvent = async (req, res) => {
     });
     res.status(201).json(event);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const updateEvent = async (req, res) => {
   try {
+    const current = await Event.findById(req.params.id);
+    if (!current) return res.status(404).json({ message: "Event not found" });
+    if (current.ticketed) return res.status(409).json({ message: "Ticketed events cannot be edited through legacy event management" });
     const allowedFields = ["title", "description", "date", "domain", "capacity", "reportedAttendeeCount"];
     const updates = {};
     for (const key of allowedFields) {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     }
 
-    const event = await Event.findByIdAndUpdate(req.params.id, updates, {
-      new: true,
-      runValidators: true,
-    });
-    if (!event) return res.status(404).json({ message: "Event not found" });
-    res.json(event);
+    Object.assign(current, updates);
+    await current.save();
+    res.json(current);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -136,6 +160,7 @@ export const checkinEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: "Event not found" });
+    if (event.ticketed) return res.status(410).json({ message: "Use a valid reservation QR ticket at the staff scanner" });
 
     const memberId = req.body.memberId || req.user._id;
     const action = req.body.action;
@@ -187,6 +212,6 @@ export const checkinEvent = async (req, res) => {
     response.attendanceSummary = getAttendanceSummary(populated);
     res.json(response);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

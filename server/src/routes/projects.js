@@ -20,6 +20,7 @@ import {
 } from "../controllers/projectController.js";
 import auth from "../middleware/auth.js";
 import roleGuard from "../middleware/roleGuard.js";
+import Project from "../models/Project.js";
 
 const router = Router();
 
@@ -29,6 +30,16 @@ router.get("/burndown-summary", auth, roleGuard("pm"), getBurndownSummary);
 router.get("/:id", auth, getProjectById);
 router.post("/", auth, roleGuard("pm"), createProject);
 router.put("/:id", auth, roleGuard("pm"), updateProject);
+router.use("/:id", auth, async (req, res, next) => {
+  try {
+    const project = await Project.findById(req.params.id).select("members").lean();
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    if (req.user.role !== "pm" && !project.members.some((id) => String(id) === String(req.user._id))) {
+      return res.status(403).json({ message: "Not a member of this project" });
+    }
+    next();
+  } catch { res.status(400).json({ message: "Invalid project" }); }
+});
 router.put("/:id/repo", auth, setRepoUrl);
 
 // Todos

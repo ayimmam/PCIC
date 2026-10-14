@@ -3,14 +3,15 @@ import User from "../models/User.js";
 import Decision from "../models/Decision.js";
 import { sendNewMemberNotification, sendPromotionRequestEmail } from "../utils/email.js";
 
-export const getCandidates = async (_req, res) => {
+export const getCandidates = async (req, res) => {
   try {
-    const candidates = await Candidate.find()
+    const leader = ["president", "vice_president", "pm", "mc", "domain_leader"].includes(req.user.role);
+    const candidates = await Candidate.find(leader ? {} : { member: req.user._id })
       .populate("reviewedBy", "name")
       .sort({ createdAt: -1 });
     res.json(candidates);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -84,7 +85,7 @@ export const submitApplication = async (req, res) => {
 
     res.status(201).json(candidate);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -172,7 +173,7 @@ export const approveCandidate = async (req, res) => {
 
     res.json(candidate);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -218,6 +219,6 @@ export const rejectCandidate = async (req, res) => {
 
     res.json(candidate);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

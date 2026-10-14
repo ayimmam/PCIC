@@ -17,13 +17,14 @@ export function useMembers(filters = {}, options = {}) {
   });
 }
 
-export function useMemberCount() {
+export function useMemberCount(options = {}) {
   return useQuery({
     queryKey: ["members", "count"],
     queryFn: async () => {
       const { data } = await api.get("/members/count");
       return data;
     },
+    ...options,
   });
 }
 

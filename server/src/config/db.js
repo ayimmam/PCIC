@@ -1,16 +1,22 @@
 import mongoose from "mongoose";
 
+let pendingConnection;
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      tls: true,
-      tlsAllowInvalidCertificates: false,
+  if (mongoose.connection.readyState === 1) return mongoose;
+  if (!process.env.MONGODB_URI) throw new Error("MONGODB_URI is not configured");
+  if (!pendingConnection) {
+    pendingConnection = mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      ...(process.env.MONGODB_URI.startsWith("mongodb+srv://") ? { tls: true, tlsAllowInvalidCertificates: false } : {}),
+    }).then((conn) => {
+      console.log(`MongoDB connected: ${conn.connection.host}`);
+      return conn;
+    }).catch((error) => {
+      pendingConnection = undefined;
+      throw error;
     });
-    console.log(`MongoDB connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`MongoDB connection error: ${error.message}`);
-    // Do not call process.exit(1) in a serverless environment
   }
+  return pendingConnection;
 };
 
 export default connectDB;

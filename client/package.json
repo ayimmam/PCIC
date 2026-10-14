@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/index.html dist/404.html",
+    "build": "vite build && node scripts/postbuild.js",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -22,6 +22,7 @@
     "@radix-ui/react-toast": "^1.2.4",
     "@tanstack/react-query": "^5.62.16",
     "@tanstack/react-table": "^8.20.6",
+    "@zxing/browser": "^0.2.1",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -30,6 +31,7 @@
     "jspdf": "^4.2.1",
     "lucide-react": "^0.468.0",
     "posthog-js": "^1.396.6",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.5",

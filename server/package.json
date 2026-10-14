@@ -10,12 +10,15 @@
     "seed": "node src/seed.js",
     "seed:members": "node src/seed-members.js",
     "seed:academic-calendar": "node src/seed-academic-calendar.js",
+    "seed:showcase": "node src/seed-showcase-event.js",
+    "upload:landing": "node src/upload-landing-assets.js",
     "migrate:domains": "node src/migrate-legacy-domains.js",
-    "test": "NODE_ENV=test node --test test/domain-students.unit.test.js test/summer-seed-data.test.js test/peak-projects.integration.test.js"
+    "test": "NODE_ENV=test node --test test/domain-students.unit.test.js test/summer-seed-data.test.js test/peak-projects.integration.test.js",
+    "test:showcase": "NODE_ENV=test node --test test/showcase.integration.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "cloudinary": "^1.41.3",
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -23,10 +26,13 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "multer": "^2.0.2",
-    "multer-storage-cloudinary": "^4.0.0",
-    "nodemailer": "^8.0.1"
+    "nodemailer": "^10.1.0"
   },
   "devDependencies": {
+    "mongodb-memory-server": "^11.3.0",
     "nodemon": "^3.1.11"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
   }
 }

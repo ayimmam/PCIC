@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Strike from "../models/Strike.js";
 import Event from "../models/Event.js";
+import EventRegistration from "../models/EventRegistration.js";
 import { sendWarningEmail } from "../utils/email.js";
 
 /** Escape special regex characters to prevent ReDoS */
@@ -25,7 +26,7 @@ export const getMembers = async (req, res) => {
     const members = await User.find(filter).select("-password").sort({ name: 1 });
     res.json(members);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -37,7 +38,7 @@ export const getMemberCount = async (_req, res) => {
     const inactive = await User.countDocuments({ status: "inactive" });
     res.json({ total, active, warning, inactive });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -62,7 +63,7 @@ export const updateMemberStatus = async (req, res) => {
     const { password: _, ...memberData } = member.toObject();
     res.json(memberData);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -86,7 +87,7 @@ export const updateMemberBatch = async (req, res) => {
     const { password: _, ...memberData } = member.toObject();
     res.json(memberData);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -112,7 +113,7 @@ export const updateMemberProfile = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({ message: "Email already in use" });
     }
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -124,7 +125,7 @@ export const getMyProfile = async (req, res) => {
     delete userObj.password;
     res.json(userObj);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -135,12 +136,14 @@ export const getMyStrikes = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(strikes);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const getMyAttendance = async (req, res) => {
   try {
+    const ticketed = await EventRegistration.find({ memberId: req.user._id, status: { $ne: "cancelled" } })
+      .populate("eventId", "title date domain scope").lean();
     const events = await Event.find({ "attendees.memberId": req.user._id })
       .select("title date domain attendees")
       .sort({ date: -1 });
@@ -159,9 +162,16 @@ export const getMyAttendance = async (req, res) => {
       };
     });
 
-    res.json(result);
+    const newEntries = ticketed.filter((row) => row.eventId).map((row) => ({
+      _id: row.eventId._id, title: row.eventId.title, date: row.eventId.date,
+      domain: row.eventId.scope === "community" ? "Community" : row.eventId.domain,
+      checkedIn: row.status === "checked_in", checkedInAt: row.checkedInAt || null,
+      reserved: true,
+    }));
+    res.json([...newEntries, ...result.filter((row) => !newEntries.some((entry) => String(entry._id) === String(row._id)))]
+      .sort((a, b) => new Date(b.date) - new Date(a.date)));
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -182,7 +192,7 @@ export const updateMyName = async (req, res) => {
     const { password: _, ...userData } = user.toObject();
     res.json(userData);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -194,11 +204,11 @@ export const changeMyPassword = async (req, res) => {
       return res.status(400).json({ message: "Current password and new password are required" });
     }
 
-    if (String(newPassword).length < 6) {
-      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    if (String(newPassword).length < 15 || Buffer.byteLength(String(newPassword), "utf8") > 72) {
+      return res.status(400).json({ message: "New password must be 15–72 bytes" });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select("+password");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await user.comparePassword(String(currentPassword));
@@ -211,7 +221,7 @@ export const changeMyPassword = async (req, res) => {
 
     res.json({ message: "Password changed successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

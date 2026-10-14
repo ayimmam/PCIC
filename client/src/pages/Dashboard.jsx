@@ -34,9 +34,10 @@ function StatCard({ title, value, description, icon: Icon, isLoading }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const canViewLeadershipStats = ["president", "vice_president", "pm", "mc", "domain_leader"].includes(user?.role);
   const { data: eventCount, isLoading: eventsLoading } = useEventCount();
-  const { data: memberCount, isLoading: membersLoading } = useMemberCount();
-  const { data: strikeSummary, isLoading: strikesLoading } = useStrikeSummary();
+  const { data: memberCount, isLoading: membersLoading } = useMemberCount({ enabled: canViewLeadershipStats });
+  const { data: strikeSummary, isLoading: strikesLoading } = useStrikeSummary({ enabled: canViewLeadershipStats });
   const { data: myTasks = [], isLoading: tasksLoading } = useMyTasks();
   const { data: myStrikes = [], isLoading: myStrikesLoading } = useMemberStrikes(user?._id);
 
@@ -66,21 +67,21 @@ export default function Dashboard() {
           icon={Users}
           isLoading={eventsLoading}
         />
-        <StatCard
+        {canViewLeadershipStats && <StatCard
           title="Total Members"
           value={memberCount?.total || 0}
           description={`${memberCount?.active || 0} active`}
           icon={Users}
           isLoading={membersLoading}
-        />
-        <StatCard
+        />}
+        {canViewLeadershipStats && <StatCard
           title="Total Strikes"
           value={strikeSummary?.total || 0}
           description={`${strikeSummary?.membersWithStrikes || 0} members affected`}
           icon={AlertTriangle}
           isLoading={strikesLoading}
-        />
-        <StatCard
+        />}
+        {canViewLeadershipStats && <StatCard
           title="Active Rate"
           value={
             memberCount?.total
@@ -90,11 +91,11 @@ export default function Dashboard() {
           description={`${memberCount?.warning || 0} on warning`}
           icon={TrendingUp}
           isLoading={membersLoading}
-        />
+        />}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
+        {canViewLeadershipStats && <Card>
           <CardHeader>
             <CardTitle className="text-base">Member Status Breakdown</CardTitle>
           </CardHeader>
@@ -109,7 +110,7 @@ export default function Dashboard() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card>}
 
         <Card>
           <CardHeader>
@@ -125,10 +126,10 @@ export default function Dashboard() {
                 <span className="text-sm">Checked-in Members (All Events)</span>
                 <span className="font-semibold">{eventCount?.checkedInTotal || 0}</span>
               </div>
-              <div className="flex justify-between rounded-md bg-muted p-3">
+              {canViewLeadershipStats && <div className="flex justify-between rounded-md bg-muted p-3">
                 <span className="text-sm">Members With Strikes</span>
                 <span className="font-semibold">{strikeSummary?.membersWithStrikes || 0}</span>
-              </div>
+              </div>}
               <div className="flex justify-between rounded-md bg-muted p-3">
                 <span className="text-sm">Latest Attendance Report</span>
                 <span className="max-w-[65%] truncate text-right font-semibold" title={latestReportedLabel}>

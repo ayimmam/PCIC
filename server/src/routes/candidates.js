@@ -2,12 +2,12 @@ import { Router } from "express";
 import { getCandidates, submitApplication, approveCandidate, rejectCandidate } from "../controllers/candidateController.js";
 import auth from "../middleware/auth.js";
 import roleGuard from "../middleware/roleGuard.js";
-import upload from "../utils/upload.js";
+import upload, { validateAndStoreFile } from "../utils/upload.js";
 
 const router = Router();
 
 router.get("/", auth, getCandidates);
-router.post("/", auth, roleGuard("member"), upload.single("portfolio"), submitApplication);
+router.post("/", auth, roleGuard("member"), upload.single("portfolio"), validateAndStoreFile, submitApplication);
 router.put("/:id/approve", auth, roleGuard("president"), approveCandidate);
 router.put("/:id/reject", auth, roleGuard("president"), rejectCandidate);
 

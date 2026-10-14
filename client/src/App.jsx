@@ -6,18 +6,22 @@ import ProfileDropdown from "@/components/shared/ProfileDropdown";
 import WelcomeDialog from "@/components/shared/WelcomeDialog";
 import { Badge } from "@/components/ui/badge";
 import RoleGate from "@/components/shared/RoleGate";
-import Login from "@/pages/Login";
-import Onboarding from "@/pages/Onboarding";
-import PeakProjects from "@/pages/PeakProjects";
-import Dashboard from "@/pages/Dashboard";
-import Events from "@/pages/Events";
-import Members from "@/pages/Members";
-import Career from "@/pages/Career";
-import Admin from "@/pages/Admin";
-import Reports from "@/pages/Reports";
-import ProjectMetricLog from "@/pages/ProjectMetricLog";
-import LeadershipCompliance from "@/pages/LeadershipCompliance";
-import SummerProject from "@/pages/SummerProject";
+import { lazy, Suspense, useState } from "react";
+const Home = lazy(() => import("@/pages/Home"));
+const Login = lazy(() => import("@/pages/Login"));
+const Onboarding = lazy(() => import("@/pages/Onboarding"));
+const PeakProjects = lazy(() => import("@/pages/PeakProjects"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Events = lazy(() => import("@/pages/Events"));
+const Members = lazy(() => import("@/pages/Members"));
+const Career = lazy(() => import("@/pages/Career"));
+const Admin = lazy(() => import("@/pages/Admin"));
+const Reports = lazy(() => import("@/pages/Reports"));
+const ProjectMetricLog = lazy(() => import("@/pages/ProjectMetricLog"));
+const LeadershipCompliance = lazy(() => import("@/pages/LeadershipCompliance"));
+const SummerProject = lazy(() => import("@/pages/SummerProject"));
+const ShowcaseEvent = lazy(() => import("@/pages/ShowcaseEvent"));
+const ShowcaseScanner = lazy(() => import("@/pages/ShowcaseScanner"));
 import {
   LayoutDashboard,
   CalendarDays,
@@ -33,11 +37,10 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/events", label: "Events", icon: CalendarDays },
   { path: "/members", label: "Members", icon: Users, roles: ["president", "vice_president", "pm", "mc", "domain_leader"] },
   { path: "/reports", label: "Decisions", icon: FileText },
@@ -57,6 +60,7 @@ const navItems = [
   },
   { path: "/admin", label: "Admin", icon: Shield, roles: ["president", "pm", "mc"] },
 ];
+const protectedPaths = ["dashboard", "events", "members", "reports", "career", "projects", "summer-project", "leadership-compliance", "admin"];
 
 function Sidebar({ user, onLogout }) {
   const location = useLocation();
@@ -111,7 +115,7 @@ function Sidebar({ user, onLogout }) {
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
-                {item.path === "/" && myTasks.length > 0 && (
+                {item.path === "/dashboard" && myTasks.length > 0 && (
                   <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1.5 text-xs">
                     {myTasks.length}
                   </Badge>
@@ -156,10 +160,10 @@ function AppLayout() {
       <main className="p-6 pt-20 lg:ml-64 lg:pt-20">
         <WelcomeDialog />
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/events" element={<Events />} />
           <Route path="/members" element={
-            <RoleGate allowedRoles={["president", "vice_president", "pm", "mc", "domain_leader"]} fallback={<Navigate to="/" />}>
+            <RoleGate allowedRoles={["president", "vice_president", "pm", "mc", "domain_leader"]} fallback={<Navigate to="/dashboard" />}>
               <Members />
             </RoleGate>
           } />
@@ -169,30 +173,32 @@ function AppLayout() {
           <Route path="/projects" element={<ProjectMetricLog />} />
           <Route path="/summer-project" element={<SummerProject />} />
           <Route path="/admin" element={
-            <RoleGate allowedRoles={["president", "pm", "mc"]} fallback={<Navigate to="/" />}>
+            <RoleGate allowedRoles={["president", "pm", "mc"]} fallback={<Navigate to="/dashboard" />}>
               <Admin />
             </RoleGate>
           } />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
     </div>
   );
 }
 
+function NotFound() {
+  return <section className="mx-auto max-w-xl py-24 text-center"><h1 className="text-4xl font-bold">Page not found</h1><p className="mt-3 text-muted-foreground">This address does not match a PCIC page.</p><Link to="/dashboard" className="mt-6 inline-block text-primary underline">Go to dashboard</Link></section>;
+}
+
 export default function App() {
   return (
-    <Routes>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading…</div>}><Routes>
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Navigate to="/login?mode=signup" replace />} />
       <Route path="/peak-projects" element={<PeakProjects />} />
-      <Route
-        path="/*"
-        element={
-          <ProtectedRoute>
-            <AppLayout />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+      <Route path="/events/project-showcase-semester-kickoff-2026" element={<ShowcaseEvent />} />
+      <Route path="/events/project-showcase-semester-kickoff-2026/check-in" element={<ProtectedRoute><ShowcaseScanner /></ProtectedRoute>} />
+      {protectedPaths.map((path) => <Route key={path} path={`/${path}/*`} element={<ProtectedRoute><AppLayout /></ProtectedRoute>} />)}
+      <Route path="*" element={<main className="mx-auto max-w-xl px-5 py-24 text-center"><h1 className="text-4xl font-bold">Page not found</h1><p className="mt-3 text-muted-foreground">This address does not match a PCIC page.</p><Link to="/" className="mt-6 inline-block text-primary underline">Go to homepage</Link></main>} />
+    </Routes></Suspense>
   );
 }

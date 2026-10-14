@@ -22,13 +22,14 @@ export function useMemberStrikes(memberId) {
   });
 }
 
-export function useStrikeSummary() {
+export function useStrikeSummary(options = {}) {
   return useQuery({
     queryKey: ["strikes", "summary"],
     queryFn: async () => {
       const { data } = await api.get("/strikes/summary");
       return data;
     },
+    ...options,
   });
 }
 

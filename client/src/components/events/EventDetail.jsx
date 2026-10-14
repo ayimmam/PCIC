@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import AttendanceList from "./AttendanceList";
-import { useCheckin, useUpdateEvent } from "@/hooks/useEvents";
+import { useCheckin, useUpdateEvent, useEventDetails } from "@/hooks/useEvents";
 import { useMembers } from "@/hooks/useMembers";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
-export default function EventDetail({ event, open, onOpenChange }) {
+export default function EventDetail({ event: preview, open, onOpenChange }) {
+  const { data: detail } = useEventDetails(preview?._id, open && !preview?.ticketed);
+  const event = detail || preview;
   const { user } = useAuth();
   const checkin = useCheckin();
   const updateEvent = useUpdateEvent();
@@ -63,6 +66,15 @@ export default function EventDetail({ event, open, onOpenChange }) {
   );
 
   if (!event) return null;
+
+  if (event.ticketed) return <Sheet open={open} onOpenChange={onOpenChange}>
+    <SheetContent className="w-full sm:max-w-lg">
+      <SheetHeader><SheetTitle>{event.title}</SheetTitle><SheetDescription>{event.venue || "Community event"}</SheetDescription></SheetHeader>
+      <p className="mt-6 whitespace-pre-line text-sm text-muted-foreground">{event.description}</p>
+      <Button asChild className="mt-6 w-full"><Link to={`/events/${event.slug}`}>View event and RSVP</Link></Button>
+      {["president", "event_organizer"].includes(user?.role) && <Button asChild variant="outline" className="mt-3 w-full"><Link to={`/events/${event.slug}/check-in`}>Staff QR scanner</Link></Button>}
+    </SheetContent>
+  </Sheet>;
 
   const handleSelfCheckin = async () => {
     try {

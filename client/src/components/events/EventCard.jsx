@@ -12,14 +12,14 @@ const domainColors = {
 
 export default function EventCard({ event, onClick }) {
   const isPast = new Date(event.date) < new Date();
-  const checkedInCount = event.attendees?.filter((a) => a.checkedIn).length || 0;
+  const checkedInCount = event.attendanceSummary?.checkedIn || 0;
 
   return (
     <Card className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => onClick?.(event)}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base leading-tight">{event.title}</CardTitle>
-          <Badge variant={domainColors[event.domain] || "secondary"}>{event.domain}</Badge>
+          <Badge variant={domainColors[event.domain] || "secondary"}>{event.scope === "community" ? "Community" : event.domain}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-muted-foreground">
@@ -29,10 +29,7 @@ export default function EventCard({ event, onClick }) {
         </div>
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4" />
-          <span>
-            {checkedInCount} checked in
-            {event.capacity > 0 && ` / ${event.capacity} capacity`}
-          </span>
+          <span>{event.ticketed ? `${event.reservationCount} reserved / ${event.capacity} seats` : `${checkedInCount} checked in${event.capacity > 0 ? ` / ${event.capacity} capacity` : ""}`}</span>
         </div>
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4" />

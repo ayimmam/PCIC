@@ -10,7 +10,7 @@ export const getStrikes = async (_req, res) => {
       .sort({ createdAt: -1 });
     res.json(strikes);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -21,7 +21,7 @@ export const getMemberStrikes = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(strikes);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -46,7 +46,7 @@ export const getStrikeSummary = async (_req, res) => {
       maxStrikes: summary[0]?.maxStrikes || 0,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -86,7 +86,7 @@ export const assignStrike = async (req, res) => {
 
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -105,7 +105,7 @@ export const requestDelete = async (req, res) => {
 
     res.json(strike);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -128,7 +128,7 @@ export const approveDelete = async (req, res) => {
 
     res.json({ message: "Strike deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -146,7 +146,7 @@ export const requestDismissFlag = async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -163,6 +163,6 @@ export const approveDismissFlag = async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

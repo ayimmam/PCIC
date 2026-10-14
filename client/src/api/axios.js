@@ -6,7 +6,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("pcic_token");
+  const token = sessionStorage.getItem("pcic_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -16,9 +16,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("pcic_token");
-      localStorage.removeItem("pcic_user");
+    if (error.response?.status === 401 && !["/auth/login", "/auth/signup"].includes(error.config?.url)) {
+      sessionStorage.removeItem("pcic_token");
+      sessionStorage.removeItem("pcic_user");
       window.location.href = "/login";
     }
     return Promise.reject(error);

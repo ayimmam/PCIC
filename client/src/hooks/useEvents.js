@@ -14,6 +14,11 @@ export function useEvents(filters = {}) {
   });
 }
 
+export function useEventDetails(id, enabled) {
+  return useQuery({ queryKey: ["events", "detail", id], enabled: Boolean(id && enabled),
+    queryFn: async () => (await api.get(`/events/${id}`)).data });
+}
+
 export function useEventCount() {
   return useQuery({
     queryKey: ["events", "count"],

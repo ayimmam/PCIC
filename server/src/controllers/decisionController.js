@@ -1,6 +1,13 @@
 import mongoose from "mongoose";
 import Decision from "../models/Decision.js";
 
+const leadershipRoles = new Set(["president", "vice_president", "pm", "secretary", "mc", "event_organizer", "pr", "domain_leader"]);
+const readScope = (user) => leadershipRoles.has(user.role) ? {} : { $or: [
+  { description: { $regex: "\\[Academic Calendar\\]" } },
+  { stakeholders: user._id },
+  { "actionItems.assignees": user._id },
+] };
+
 function parseDate(v) {
   if (!v) return null;
   const d = new Date(v);
@@ -34,7 +41,7 @@ export const getDecisions = async (req, res) => {
       if (filter.$and.length === 0) delete filter.$and;
     }
 
-    const decisions = await Decision.find(filter)
+    const decisions = await Decision.find({ $and: [filter, readScope(req.user)] })
       .populate("author", "name")
       .populate("stakeholders", "name email")
       .populate("timeline.changedBy", "name")
@@ -43,7 +50,7 @@ export const getDecisions = async (req, res) => {
 
     res.json(decisions);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -84,13 +91,13 @@ export const getMyTasks = async (req, res) => {
     tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     res.json(tasks);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const getDecisionById = async (req, res) => {
   try {
-    const decision = await Decision.findById(req.params.id)
+    const decision = await Decision.findOne({ $and: [{ _id: req.params.id }, readScope(req.user)] })
       .populate("author", "name")
       .populate("stakeholders", "name email")
       .populate("timeline.changedBy", "name")
@@ -99,7 +106,7 @@ export const getDecisionById = async (req, res) => {
     if (!decision) return res.status(404).json({ message: "Decision not found" });
     res.json(decision);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -118,7 +125,7 @@ export const getConflicts = async (req, res) => {
 
     res.json(conflicts);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -180,7 +187,7 @@ export const createDecision = async (req, res) => {
     ]);
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -228,6 +235,7 @@ export const updateDecision = async (req, res) => {
       }
     } else {
       // Assignee: only allow setting own action item status to "done"
+      let changedOwnTask = false;
       if (Array.isArray(actionItems)) {
         const userId = req.user._id.toString();
         for (let i = 0; i < actionItems.length && i < decision.actionItems.length; i++) {
@@ -237,9 +245,11 @@ export const updateDecision = async (req, res) => {
           );
           if (assigneeIds.includes(userId) && actionItems[i]?.status === "done") {
             decision.actionItems[i].status = "done";
+            changedOwnTask = true;
           }
         }
       }
+      if (!changedOwnTask) return res.status(403).json({ message: "Not assigned to this decision" });
     }
 
     await decision.save();
@@ -252,6 +262,6 @@ export const updateDecision = async (req, res) => {
     const payload = populated.toObject ? populated.toObject() : populated;
     res.json(payload);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

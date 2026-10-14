@@ -1,5 +1,9 @@
 import nodemailer from "nodemailer";
 
+const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+})[char]);
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: parseInt(process.env.SMTP_PORT || "587"),
@@ -8,6 +12,14 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+});
+
+export const sendPasswordResetEmail = async (address, link) => transporter.sendMail({
+  from: process.env.SMTP_USER,
+  to: address,
+  subject: "PCIC account recovery",
+  text: `Use this link within 30 minutes to set a new password: ${link}`,
+  html: `<p>Use this link within 30 minutes to set a new password:</p><p><a href="${escapeHtml(link)}">Reset password</a></p>`,
 });
 
 export const sendWarningEmail = async (memberEmail, memberName) => {
@@ -22,7 +34,7 @@ export const sendWarningEmail = async (memberEmail, memberName) => {
     subject: "PCIC - Membership Status Warning",
     html: `
       <h2>Membership Status Warning</h2>
-      <p>Dear ${memberName},</p>
+      <p>Dear ${escapeHtml(memberName)},</p>
       <p>Your membership status in the Peak Craft Informatics Community has been changed to <strong>Warning</strong>.</p>
       <p>Please contact the Project Manager or Membership Coordinator to discuss your participation.</p>
       <p>Regards,<br/>PCIC Management System</p>
@@ -44,7 +56,7 @@ export const sendNewMemberNotification = async (pmEmail, candidateName) => {
     subject: "PCIC - New Member Approved",
     html: `
       <h2>New Member Approved</h2>
-      <p>A new candidate <strong>${candidateName}</strong> has been approved by the President.</p>
+      <p>A new candidate <strong>${escapeHtml(candidateName)}</strong> has been approved by the President.</p>
       <p>Please follow up on onboarding.</p>
       <p>Regards,<br/>PCIC Management System</p>
     `,
@@ -67,9 +79,9 @@ export const sendPromotionRequestEmail = async (presidentEmail, memberName, curr
     subject: "PCIC - Membership Promotion Request",
     html: `
       <h2>Membership Promotion Request</h2>
-      <p>Member <strong>${memberName}</strong> has requested promotion from <strong>${currentBatch}</strong> to <strong>${requestedBatch}</strong>.</p>
+      <p>Member <strong>${escapeHtml(memberName)}</strong> has requested promotion from <strong>${escapeHtml(currentBatch)}</strong> to <strong>${escapeHtml(requestedBatch)}</strong>.</p>
       <p>You can review the portfolio and make a decision from the members page:</p>
-      <p><a href="${link}" target="_blank" rel="noopener noreferrer">Open member review</a></p>
+      <p><a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open member review</a></p>
       <p>Regards,<br/>PCIC Management System</p>
     `,
   };
@@ -79,7 +91,7 @@ export const sendPromotionRequestEmail = async (presidentEmail, memberName, curr
 
 export const sendStrikeEmail = async (memberEmail, memberName, reason, totalStrikes) => {
   if (!process.env.SMTP_USER) {
-    console.log(`[Email Skipped] Would notify ${memberName} about strike: ${reason}`);
+    console.log("[Email Skipped] Disciplinary notice not sent");
     return;
   }
 
@@ -89,10 +101,10 @@ export const sendStrikeEmail = async (memberEmail, memberName, reason, totalStri
     subject: "PCIC - Disciplinary Strike Notice",
     html: `
       <h2>Disciplinary Strike Notice</h2>
-      <p>Dear ${memberName},</p>
+      <p>Dear ${escapeHtml(memberName)},</p>
       <p>You have been assigned a disciplinary strike for the following reason:</p>
       <blockquote style="border-left: 4px solid #cc0000; padding-left: 10px; margin-left: 0;">
-        ${reason}
+        ${escapeHtml(reason)}
       </blockquote>
       <p>Your current total strike count is: <strong>${totalStrikes}</strong></p>
       ${totalStrikes >= 3 ? "<p><strong>Because you have reached 3 strikes, your membership status is now suspended. Please contact leadership immediately.</strong></p>" : "<p>Please ensure you adhere to the community guidelines. Reaching 3 strikes will result in suspension.</p>"}

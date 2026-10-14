@@ -59,7 +59,7 @@ export const getMine = async (req, res) => {
 
     res.json(submission || null);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -80,7 +80,7 @@ export const listPendingForGrader = async (req, res) => {
 
     res.json(filtered);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -163,7 +163,7 @@ export const submitSubmission = async (req, res) => {
     const populated = await SummerProjectSubmission.findById(submission._id).populate("gradedBy", "name");
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -244,6 +244,6 @@ export const gradeSubmission = async (req, res) => {
     const populated = await SummerProjectSubmission.findById(req.params.id).populate("gradedBy", "name");
     res.json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

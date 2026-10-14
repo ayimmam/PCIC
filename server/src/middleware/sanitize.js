@@ -13,7 +13,7 @@ const stripDollarKeys = (obj) => {
 
   const cleaned = {};
   for (const key of Object.keys(obj)) {
-    if (key.startsWith("$")) continue;
+    if (key.startsWith("$") || key.includes(".") || ["__proto__", "constructor", "prototype"].includes(key)) continue;
     cleaned[key] = stripDollarKeys(obj[key]);
   }
   return cleaned;

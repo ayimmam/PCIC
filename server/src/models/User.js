@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6 },
+    password: { type: String, required: true, minlength: 6, select: false },
     role: {
       type: String,
       enum: [
@@ -33,6 +33,11 @@ const userSchema = new mongoose.Schema(
       default: "active",
     },
     mustResetPassword: { type: Boolean, default: false },
+    academicYear: { type: Number, enum: [1, 2, 3, 4, 5], default: null },
+    passwordChangedAt: { type: Date, default: null },
+    sessionVersion: { type: Number, default: 0 },
+    resetTokenHash: { type: String, default: null, select: false },
+    resetTokenExpiresAt: { type: Date, default: null, select: false },
     isFlagged: { type: Boolean, default: false },
     flagAssignedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     dismissFlagRequested: { type: Boolean, default: false },
@@ -43,6 +48,10 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
+  if (!this.isNew) {
+    this.passwordChangedAt = new Date();
+    this.sessionVersion = (this.sessionVersion || 0) + 1;
+  }
   next();
 });
 

@@ -55,7 +55,7 @@ export const getProjects = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(projects);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -68,7 +68,7 @@ export const getProjectById = async (req, res) => {
     }
     res.json(project);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -100,7 +100,7 @@ export const createProject = async (req, res) => {
     const populated = await project.populate(populateProject);
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -153,7 +153,7 @@ export const setRepoUrl = async (req, res) => {
     await project.save();
     res.json({ repoUrl: project.repoUrl });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -177,7 +177,7 @@ export const addTodo = async (req, res) => {
     const populated = await project.populate(populateProject);
     res.status(201).json(populated.todos);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -207,7 +207,7 @@ export const updateTodo = async (req, res) => {
     const populated = await project.populate(populateProject);
     res.json(populated.todos);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -227,7 +227,7 @@ export const getReports = async (req, res) => {
       .sort({ weekNumber: -1 });
     res.json(reports);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -252,7 +252,7 @@ export const submitReport = async (req, res) => {
     ]);
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -271,7 +271,7 @@ export const scoreReport = async (req, res) => {
     ]);
     res.json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -284,7 +284,7 @@ export const getResources = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(resources);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -301,7 +301,7 @@ export const addResource = async (req, res) => {
     const populated = await resource.populate("sharedBy", "name");
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -315,7 +315,7 @@ export const getIssues = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(issues);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -335,7 +335,7 @@ export const createIssue = async (req, res) => {
     ]);
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -343,6 +343,7 @@ export const replyIssue = async (req, res) => {
   try {
     const issue = await ProjectIssue.findById(req.params.issueId);
     if (!issue) return res.status(404).json({ message: "Issue not found" });
+    if (String(issue.project) !== String(req.params.id)) return res.status(404).json({ message: "Issue not found" });
 
     issue.messages.push({ sender: req.user._id, content: req.body.content });
     if (req.body.resolve) issue.status = "resolved";
@@ -354,7 +355,7 @@ export const replyIssue = async (req, res) => {
     ]);
     res.json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -395,7 +396,7 @@ export const getBurndown = async (req, res) => {
 
     res.json({ totalTasks, startDate, endDate, data });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -419,6 +420,6 @@ export const getBurndownSummary = async (req, res) => {
 
     res.json(summary);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

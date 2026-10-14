@@ -1,34 +1,18 @@
 import { Router } from "express";
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import { login, register, getMe, completeOnboarding } from "../controllers/authController.js";
+import { login, register, signup, getMe, completeOnboarding, logout, requestPasswordReset, resetPassword } from "../controllers/authController.js";
 import auth from "../middleware/auth.js";
 import roleGuard from "../middleware/roleGuard.js";
+import sharedRateLimit from "../middleware/sharedRateLimit.js";
 
 const router = Router();
 
-// Best-effort throttling: Vercel's serverless functions reset the default
-// in-memory store per instance/cold start, so this slows brute-force sprays
-// rather than hard-capping them. Acceptable for this threat model.
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${String(req.body?.email || "").trim().toLowerCase()}`,
-  message: { message: "Too many login attempts, please try again later" },
-});
-
-const onboardingLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: "Too many attempts, please try again later" },
-});
-
-router.post("/login", loginLimiter, login);
+router.post("/login", sharedRateLimit("login"), login);
+router.post("/signup", sharedRateLimit("signup", { ipLimit: 20, accountLimit: 5 }), signup);
+router.post("/password-reset/request", sharedRateLimit("reset-request", { ipLimit: 20, accountLimit: 5 }), requestPasswordReset);
+router.post("/password-reset/complete", sharedRateLimit("reset-complete", { ipLimit: 20 }), resetPassword);
 router.post("/register", auth, roleGuard("president", "pm"), register);
+router.post("/logout", auth, logout);
 router.get("/me", auth, getMe);
-router.post("/complete-onboarding", auth, onboardingLimiter, completeOnboarding);
+router.post("/complete-onboarding", auth, sharedRateLimit("onboarding", { ipLimit: 20 }), completeOnboarding);
 
 export default router;

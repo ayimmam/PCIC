@@ -150,7 +150,7 @@ export const getDashboard = async (req, res) => {
       rows,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -213,7 +213,7 @@ export const submitReport = async (req, res) => {
     const populated = await report.populate("domainLeader", "name email domain");
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -283,7 +283,7 @@ export const getSubmissionHistory = async (req, res) => {
 
     res.json({ semester, domainLeader: leader, history });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -324,7 +324,7 @@ export const addFeedback = async (req, res) => {
 
     res.json(populated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -333,7 +333,7 @@ export const getSemesters = async (_req, res) => {
     const items = await SemesterConfig.find({}).sort({ startDate: -1 }).lean();
     res.json({ items: items.map(mapSemesterConfig) });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -377,7 +377,7 @@ export const createSemester = async (req, res) => {
     if (error?.code === 11000) {
       return res.status(409).json({ message: "Semester name already exists" });
     }
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -430,7 +430,7 @@ export const updateSemester = async (req, res) => {
     if (error?.code === 11000) {
       return res.status(409).json({ message: "Semester name already exists" });
     }
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

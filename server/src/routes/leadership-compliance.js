@@ -1,7 +1,7 @@
 import { Router } from "express";
 import auth from "../middleware/auth.js";
 import roleGuard from "../middleware/roleGuard.js";
-import { uploadLeadershipReport } from "../utils/upload.js";
+import { uploadLeadershipReport, validateAndStoreFile } from "../utils/upload.js";
 import {
   COMPLIANCE_ROLES,
   getSemesters,
@@ -29,6 +29,7 @@ router.get(
 router.post(
   "/submissions",
   auth,
+  roleGuard("domain_leader"),
   (req, res, next) => {
     uploadLeadershipReport.single("file")(req, res, (err) => {
       if (err) {
@@ -37,6 +38,7 @@ router.post(
       next();
     });
   },
+  validateAndStoreFile,
   submitReport
 );
 router.post("/submissions/:id/feedback", auth, roleGuard("president", "vice_president"), addFeedback);

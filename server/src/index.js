@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
+import bootstrapShowcase from "./bootstrapShowcase.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +30,9 @@ if (!process.env.MONGODB_URI) {
     "CRITICAL ERROR: MONGODB_URI is not defined. Please add it to your Vercel Environment Variables.",
   );
 }
+if (process.env.NODE_ENV === "production" && (!process.env.MONGODB_URI || !process.env.JWT_SECRET)) {
+  throw new Error("Production database and JWT configuration are required");
+}
 if (!process.env.JWT_SECRET) {
   console.error(
     "CRITICAL ERROR: JWT_SECRET is not defined. Please add it to your Vercel Environment Variables.",
@@ -37,6 +41,8 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.set("trust proxy", 1);
+let showcaseBootstrap;
 
 app.use(
   cors({
@@ -49,8 +55,33 @@ app.use(
 );
 // Legacy: keep permissive CORS as fallback comment
 // app.use(cors()); // Use permissive CORS to resolve the preflight 404 issue
-app.use(express.json());
+app.use(express.json({ limit: "256kb" }));
 app.use(sanitize);
+app.disable("x-powered-by");
+app.use((_req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("Referrer-Policy", "no-referrer");
+  res.set("Cache-Control", "no-store");
+  next();
+});
+app.use("/api", async (req, res, next) => {
+  if (req.path === "/health") return next();
+  try {
+    await connectDB();
+    if (process.env.SHOWCASE_BOOTSTRAP === "1") {
+      showcaseBootstrap ||= bootstrapShowcase().catch((error) => {
+        showcaseBootstrap = undefined;
+        throw error;
+      });
+      await showcaseBootstrap;
+    }
+    next();
+  }
+  catch (error) {
+    console.error("Database unavailable", error.message);
+    res.status(503).json({ message: "Service temporarily unavailable" });
+  }
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
@@ -64,25 +95,27 @@ app.use("/api/summer-projects", summerProjectRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/peak-projects", peakProjectRoutes);
 
-app.get("/api/health", (_req, res) => {
-  res.json({
-    status: "ok",
-    environment: process.env.NODE_ENV || "development",
-  });
+app.get("/api/health", async (_req, res) => {
+  try {
+    await connectDB();
+    res.json({ status: "ok" });
+  } catch {
+    res.status(503).json({ status: "unavailable" });
+  }
+});
+
+app.use((error, _req, res, _next) => {
+  if (error?.type === "entity.too.large") return res.status(413).json({ message: "Request too large" });
+  if (error instanceof SyntaxError && error.status === 400) return res.status(400).json({ message: "Invalid JSON" });
+  console.error("Unhandled API error", error);
+  res.status(500).json({ message: "Internal server error" });
 });
 
 // For Vercel: Export the app as default
 export default app;
 
 // Establish DB connection
-connectDB().then(() => {
-  // Only start listener if not in production/Vercel/test
-  if (
-    process.env.NODE_ENV !== "production" &&
-    process.env.NODE_ENV !== "test"
-  ) {
-    app.listen(PORT, () => {
-      console.log(`Server running locally on port ${PORT}`);
-    });
-  }
-});
+if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
+  connectDB().then(() => app.listen(PORT, () => console.log(`Server running locally on port ${PORT}`)))
+    .catch((error) => console.error("MongoDB connection error:", error.message));
+}

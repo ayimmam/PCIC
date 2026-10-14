@@ -1,7 +1,7 @@
 import { Router } from "express";
 import auth from "../middleware/auth.js";
 import roleGuard from "../middleware/roleGuard.js";
-import { uploadSummerProject } from "../utils/upload.js";
+import { uploadSummerProject, validateAndStoreFile } from "../utils/upload.js";
 import {
   getMine,
   listPendingForGrader,
@@ -25,6 +25,7 @@ router.post(
       next();
     });
   },
+  validateAndStoreFile,
   submitSubmission
 );
 router.put("/:id/grade", auth, roleGuard("domain_leader"), gradeSubmission);

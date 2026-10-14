@@ -2,7 +2,7 @@
 
 Web platform for the **Peak Craft Informatics Community** (PCIC) — digitizing membership tracking, event attendance, leadership decision-making, and disciplinary workflows for 800+ members across IS, CS, and IT departments at Hawassa University.
 
-🌐 **Live:** [pcic.tech](https://pcic.tech) &nbsp;|&nbsp; 📄 **Projects:** [pcic.tech/peak-projects](https://pcic.tech/peak-projects)
+🌐 **Public home:** [pcic.tech](https://pcic.tech) &nbsp;|&nbsp; 🔐 **Member login and signup:** [pcic.tech/login](https://pcic.tech/login) &nbsp;|&nbsp; 📄 **Projects:** [pcic.tech/peak-projects](https://pcic.tech/peak-projects)
 
 ## Screenshots 
 
@@ -160,6 +160,12 @@ server/                         Express backend
 All members belong to one of four domains: **Code Crafters**, **Turing Tribe**, **Cyber Crew**, **Pixel Peeps**.
 
 ## Deployment
+
+The public landing page is at `/`, member login/signup at `/login`, and the management dashboard at `/dashboard`. The October 16 showcase page is `/events/project-showcase-semester-kickoff-2026`; assigned Peak staff use its `/check-in` subroute. Existing management routes remain protected.
+
+The showcase record is live. For other environments, `npm run seed:showcase` from `server/` is a dry run by default; `npm run seed:showcase -- --apply` writes the event after verifying active president and event organizer accounts. MongoDB transactions require a replica set. Never run general seeders against the live database to publish the showcase.
+
+The landing page photographs were extracted from the report into `client/public/report/` as build fallbacks and uploaded to Cloudinary. `client/.env.production` names the public Cloudinary cloud; the homepage uses optimized variants. The public report metrics and image sources are documented in `docs/platform-launch-implementation-plan-2026-10.md`. See `docs/platform-launch-status-2026-10-14.md` for verification and outstanding operations.
 
 | Component | Platform | URL |
 |-----------|----------|-----|
