@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import bootstrapShowcase from "./bootstrapShowcase.js";
-import bootstrapAdmin from "./bootstrapAdmin.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,7 +43,6 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 app.set("trust proxy", 1);
 let showcaseBootstrap;
-let adminBootstrap;
 
 app.use(
   cors({
@@ -70,10 +68,6 @@ app.use("/api", async (req, res, next) => {
   if (req.path === "/health") return next();
   try {
     await connectDB();
-    if (process.env.ADMIN_BOOTSTRAP_PASSWORD) {
-      adminBootstrap ||= bootstrapAdmin().catch((error) => { adminBootstrap = undefined; throw error; });
-      await adminBootstrap;
-    }
     if (process.env.SHOWCASE_BOOTSTRAP === "1") {
       showcaseBootstrap ||= bootstrapShowcase().catch((error) => {
         showcaseBootstrap = undefined;

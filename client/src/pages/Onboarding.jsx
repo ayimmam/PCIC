@@ -69,6 +69,7 @@ export default function Onboarding() {
                 id="password"
                 type="password"
                 placeholder="8–10 characters"
+                maxLength={10}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

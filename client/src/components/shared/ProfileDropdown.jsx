@@ -240,6 +240,7 @@ export default function ProfileDropdown() {
               <Input
                 id="new-password"
                 type="password"
+                maxLength={10}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
@@ -249,6 +250,7 @@ export default function ProfileDropdown() {
               <Input
                 id="confirm-password"
                 type="password"
+                maxLength={10}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handlePasswordChange()}

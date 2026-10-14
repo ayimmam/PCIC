@@ -16,3 +16,5 @@ Thumbs.db
 
 # Operator-only output of seed-members.js — per-user temp passwords, never committed
 server/seed-output/
+.vercel
+.env*
