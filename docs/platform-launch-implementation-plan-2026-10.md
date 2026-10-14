@@ -1,6 +1,6 @@
 # PCIC platform security, signup, event and public website plan
 
-Planning date: October 13, 2026. Status: implementation proposal only.
+Planning date: October 13, 2026. Implementation and live verification are tracked in [the October 14 status report](platform-launch-status-2026-10-14.md). The evidence and limits below describe the planning baseline.
 
 This document is based on the current repository and the user's clarified requirements. It supersedes conflicting recommendations in the July `pcic-implementation-plan.md` for this scope. No production audit, dependency advisory scan, deployment, or database modification has been performed.
 
